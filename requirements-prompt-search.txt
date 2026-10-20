@@ -1,0 +1,6 @@
+# Core versions from the working prompt-search environment (Python 3.12.15).
+# Install with setup_env.sh; CUDA wheels come from the official PyTorch cu132 index.
+# Transitive dependencies are resolved by pip; this is not a complete lockfile.
+vllm==0.32.0
+transformers==5.19.0
+torch==2.13.0+cu132

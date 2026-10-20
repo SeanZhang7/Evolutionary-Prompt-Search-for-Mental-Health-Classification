@@ -1,0 +1,146 @@
+{
+  "protocol_version": "v1-pilot-draft",
+  "formal_comparison_ready": false,
+  "freeze_manifest": null,
+  "model": {
+    "checkpoint": "Qwen/Qwen3.5-9B",
+    "revision": null,
+    "tokenizer_revision": null,
+    "chat_template_sha256": null,
+    "frozen_weights": true,
+    "same_checkpoint_for_both_roles": true,
+    "backend": "vllm",
+    "backend_version": null,
+    "dtype": null,
+    "context_length": null,
+    "batch_size": null,
+    "tensor_parallel_size": 1,
+    "classification": {
+      "decoding": "greedy",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": -1,
+      "max_tokens": 16,
+      "seed": 0,
+      "presence_penalty": 0.0,
+      "frequency_penalty": 0.0,
+      "repetition_penalty": 1.0,
+      "chat_template_kwargs": {"enable_thinking": false}
+    },
+    "generation": {
+      "decoding": "sampling",
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "max_tokens": 512,
+      "seed_policy": "sha256_search_seed_condition_slot_attempt_operator",
+      "presence_penalty": 0.0,
+      "frequency_penalty": 0.0,
+      "repetition_penalty": 1.0,
+      "chat_template_kwargs": {"enable_thinking": false}
+    }
+  },
+  "datasets": {
+    "A": {
+      "name": "DepSign",
+      "status": "selected_not_integrated",
+      "unit": "post",
+      "source": "https://github.com/Kayal-Sampath/detecting-signs-of-depression-from-social-media-postings",
+      "references": ["kayalvizhi2022dataset"],
+      "data_manifest": null,
+      "label_mapping": null,
+      "task_template": null
+    },
+    "B": {
+      "name": null,
+      "status": "undetermined",
+      "enabled": false,
+      "label_comparability_verified": false
+    },
+    "C": {
+      "name": "Reddit C-SSRS Suicide Dataset",
+      "status": "selected_not_integrated",
+      "unit": "user",
+      "source": "https://zenodo.org/records/2667859",
+      "references": ["gaur2019knowledge", "gaur2019reddit"],
+      "data_manifest": null,
+      "label_mapping": null,
+      "task_template": null
+    }
+  },
+  "input_policy": {
+    "max_text_tokens": null,
+    "truncation_policy": null,
+    "user_post_order": null,
+    "fixed_across_methods": true
+  },
+  "evaluation": {
+    "fitness": "macro_f1",
+    "zero_division": 0,
+    "dev_data_file": "data/processed/depsign/dev_v1/dev_clean.tsv",
+    "dev_max_samples": null,
+    "sampling": "all_rows_in_file_order",
+    "data_seed": null,
+    "dev_indices_manifest": null,
+    "parser": "strip_then_exact_label_id",
+    "invalid_prediction": "count_as_error_keep_in_denominator",
+    "test_used_for_search": false
+  },
+  "conditions": {
+    "manual": {"candidate_count": 10, "prompt_manifest": null},
+    "independent_random": {"unique_candidate_evaluations": 50, "feedback": false},
+    "ea_ordinary": {"ordinary_count": 10, "inspired_count": 0},
+    "ea_validity_reliability_inspired": {
+      "initialization": "validity_reliability_inspired",
+      "display_name": "EA with validity- and reliability-inspired initialization",
+      "ordinary_count": 5,
+      "inspired_count": 5,
+      "principles_required_after_initialization": false
+    }
+  },
+  "search": {
+    "method_reference": "guo2024connecting",
+    "initialization_reference": "arnaout2026responsible",
+    "pilot_seeds": [11],
+    "formal_seeds": [11, 22, 33],
+    "population_size": 10,
+    "generations_after_initialization": 4,
+    "offspring_per_generation": 10,
+    "parent_selection": "binary_tournament_distinct_parents",
+    "crossover_probability": 1.0,
+    "mutation_probability": 1.0,
+    "operator_order": ["crossover", "mutation"],
+    "survivor_selection": "mu_plus_lambda_top_mu",
+    "tie_break": "earliest_first_seen_then_sha256",
+    "unique_candidate_evaluation_budget": 50,
+    "max_proposal_attempts_per_slot": 3,
+    "max_transport_retries_per_request": 1,
+    "exhausted_slot_action": "mark_run_incomplete_and_stop",
+    "deduplication": "sha256_nfc_whitespace_collapsed_case_preserved",
+    "max_instruction_tokens": 256,
+    "paired_shared_ordinary_candidates": 5,
+    "generation_template_manifest": null,
+    "searchable_component": "instruction_block_only"
+  },
+  "transfer": {
+    "A_to_B": {"enabled": false, "status": "pending_dataset_B"},
+    "A_to_C": {"enabled": true, "status": "planned_not_run"},
+    "freeze_source_instruction_bytes": true,
+    "target_adaptation": "separate_search_from_target_dev_separate_budget"
+  },
+  "stability": {
+    "search_seed_variation": true,
+    "prompt_paraphrases": {
+      "planned": true,
+      "count_per_selected_prompt": 3,
+      "human_semantic_review_required": true,
+      "used_in_fitness": false,
+      "select_by_test_score": false
+    },
+    "full_framework_validated": false,
+    "external_outcome_validation": "not_measured",
+    "temporal_reliability": "not_measured",
+    "population_reliability": "not_measured",
+    "internal_consistency": "not_measured"
+  }
+}

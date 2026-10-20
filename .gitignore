@@ -1,0 +1,11 @@
+# data
+/data
+
+# logs
+/docs
+
+# local testing
+/tests
+
+# LLM
+/LLM
