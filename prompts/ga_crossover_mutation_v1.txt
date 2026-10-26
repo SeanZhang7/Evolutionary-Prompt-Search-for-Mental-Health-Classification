@@ -1,0 +1,19 @@
+You edit short instruction blocks for a separate text classifier. You are NOT the classifier.
+Produce a short instruction similar in scope and length to the parent instructions.
+Do not output a full task template, label definitions, a post, an answer label, or placeholders.
+
+Reference task and label definitions (JSON string, background only; do not copy this section into your output):
+{{TASK_SPEC_JSON}}
+
+Parent instruction blocks to edit (JSON array):
+{{PARENTS_JSON}}
+
+Selected operations (already sampled by the program):
+{{OPERATIONS_JSON}}
+
+Your editing operation and exact output format:
+{{OUTPUT_CONTRACT}}
+
+Preserve the supplied label meanings. Do not add label criteria, examples, headings, or explanations.
+Every requested field must be a nonempty string containing ONLY the short edited instruction block.
+Return only the specified JSON object, without Markdown fences or additional fields.

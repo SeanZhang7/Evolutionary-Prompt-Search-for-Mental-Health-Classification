@@ -10,9 +10,9 @@ import platform
 import random
 
 if __package__:
-    from . import run_depsign_smoke as classifier
+    from . import depsign_evaluator as classifier
 else:
-    import run_depsign_smoke as classifier
+    import depsign_evaluator as classifier
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "data/processed/depsign/dev_100.tsv"

@@ -13,9 +13,9 @@ from pathlib import Path
 import re
 
 if __package__:
-    from . import run_depsign_smoke as classifier
+    from . import depsign_evaluator as classifier
 else:
-    import run_depsign_smoke as classifier
+    import depsign_evaluator as classifier
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROMPTS = ROOT / "prompts/humanPrompt.json"
