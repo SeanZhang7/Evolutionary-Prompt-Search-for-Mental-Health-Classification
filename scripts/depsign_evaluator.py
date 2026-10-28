@@ -24,6 +24,24 @@ DEV_PURPOSE = "development_evaluation_not_held_out_test"
 TASK_TEMPLATE_PATH = ROOT / "prompts/depsign_task_v1.txt"
 LABEL_MAP = {"not depression": "not_depression", "moderate": "moderate", "severe": "severe"}
 LABELS = list(LABEL_MAP.values())
+LABEL_MODES = ("three_class", "binary")
+
+
+def task_spec(label_mode="three_class"):
+    if label_mode not in LABEL_MODES:
+        raise ValueError(f"Unknown label mode: {label_mode}")
+    mapping = (dict(LABEL_MAP) if label_mode == "three_class" else
+               {"not depression": "not_depression", "moderate": "depression", "severe": "depression"})
+    return {"label_mode": label_mode, "label_mapping": mapping,
+            "labels": list(dict.fromkeys(mapping.values())),
+            "task_template_path": TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign_task_Bi.txt"}
+
+
+def task_metadata(label_mode="three_class"):
+    spec = task_spec(label_mode)
+    return {**spec, "task_template_path": str(spec["task_template_path"])}
+
+
 BASE_URL = "http://127.0.0.1:8000"
 MODEL = "qwen35-9b"
 CONTEXT_TOKENS = 2048
@@ -37,21 +55,22 @@ PARAMETERS = {
 }
 
 
-def parse_label(content):
-    if isinstance(content, str) and content.strip() in LABELS:
+def parse_label(content, label_mode="three_class"):
+    if isinstance(content, str) and content.strip() in task_spec(label_mode)["labels"]:
         return content.strip()
     return "INVALID"
 
 
-def calculate_metrics(records):
+def calculate_metrics(records, label_mode="three_class"):
+    labels = task_spec(label_mode)["labels"]
     if not records:
         raise ValueError("Cannot score zero records")
-    matrix = [[0] * (len(LABELS) + 1) for _ in LABELS]
-    columns = LABELS + ["INVALID"]
+    matrix = [[0] * (len(labels) + 1) for _ in labels]
+    columns = labels + ["INVALID"]
     for record in records:
-        matrix[LABELS.index(record["gold"])][columns.index(record["prediction"])] += 1
+        matrix[labels.index(record["gold"])][columns.index(record["prediction"])] += 1
     per_class = {}
-    for i, label in enumerate(LABELS):
+    for i, label in enumerate(labels):
         tp = matrix[i][i]
         fp = sum(row[i] for row in matrix) - tp
         fn = sum(matrix[i]) - tp  # Includes INVALID predictions.
@@ -63,15 +82,15 @@ def calculate_metrics(records):
         }
     invalid = sum(r["prediction"] == "INVALID" for r in records)
     return {
-        "n": len(records), "macro_f1": sum(v["f1"] for v in per_class.values()) / len(LABELS),
+        "n": len(records), "macro_f1": sum(v["f1"] for v in per_class.values()) / len(labels),
         "per_class": per_class,
         "invalid_output_count": invalid, "invalid_output_rate": invalid / len(records),
         "valid_output_coverage": 1 - invalid / len(records),
         "request_error_count": sum(r.get("request_error") is not None for r in records),
         "nonempty_reasoning_count": sum(bool(r.get("reasoning")) for r in records),
         "length_limited_output_count": sum(r.get("finish_reason") == "length" for r in records),
-        "confusion_matrix": {"rows": LABELS, "columns": columns, "values": matrix},
-        "invalid_policy": "All records retained; failed/invalid predictions count as errors; macro over three real labels only",
+        "confusion_matrix": {"rows": labels, "columns": columns, "values": matrix},
+        "invalid_policy": f"All records retained; failed/invalid predictions count as errors; macro over {len(labels)} real labels only",
         "purpose": "candidate_evaluation_scope_defined_by_runner",
     }
 
@@ -107,29 +126,30 @@ def validate_instruction(instruction, tokenizer):
     return instruction, instruction_tokens
 
 
-def prepare_candidate(instruction, samples, tokenizer, *, task_template=None):
+def prepare_candidate(instruction, samples, tokenizer, *, task_template=None, label_mode="three_class"):
     """Prepare every request before inference; only the instruction slot changes.
 
     Samples use the cleaned TSV schema: PID, Text data, Label. Outer instruction
     whitespace is stripped once; the returned instruction is the exact text used.
     No model requests are made by this function.
     """
+    spec = task_spec(label_mode)
     instruction, instruction_tokens = validate_instruction(instruction, tokenizer)
     if not samples or len({row["PID"] for row in samples}) != len(samples):
         raise ValueError("Samples must be nonempty and have unique PIDs")
     if any(row["Label"] not in LABEL_MAP for row in samples):
         raise ValueError("Unexpected sample label")
     if task_template is None:
-        task_template = TASK_TEMPLATE_PATH.read_text(encoding="utf-8")
+        task_template = spec["task_template_path"].read_text(encoding="utf-8")
     if task_template.count("{{INSTRUCTION}}") != 1 or task_template.count("{{POST_JSON}}") != 1:
         raise ValueError("Expected exactly one instruction and one post placeholder")
     template = task_template.replace("{{INSTRUCTION}}", instruction)
     prepared = []
     for row in samples:
         request, details = build_request(row["Text data"], template, tokenizer)
-        prepared.append({"PID": row["PID"], "gold": LABEL_MAP[row["Label"]], "request": request, **details})
+        prepared.append({"PID": row["PID"], "gold": spec["label_mapping"][row["Label"]], "label_mode": label_mode, "request": request, **details})
     return {
-        "instruction": instruction, "instruction_tokens": instruction_tokens,
+        "label_mode": label_mode, "instruction": instruction, "instruction_tokens": instruction_tokens,
         "task_template": task_template, "template": template, "requests": prepared,
     }
 
@@ -158,7 +178,7 @@ def classify(prepared):
             reasoning=message.get("reasoning") or message.get("reasoning_content"),
             finish_reason=choice.get("finish_reason"), usage=response.get("usage"),
         )
-        result["prediction"] = parse_label(result["raw_output"])
+        result["prediction"] = parse_label(result["raw_output"], prepared.get("label_mode", "three_class"))
     except HTTPError as exc:
         result["raw_http_response"] = exc.read().decode("utf-8", errors="replace")
         result["request_error"] = f"HTTP {exc.code}"
@@ -183,7 +203,7 @@ def evaluate_candidate(candidate, *, on_result=None):
         results.append(result)
         if on_result is not None:
             on_result(index, len(prepared), result)
-    return {"metrics": calculate_metrics(results), "predictions": results}
+    return {"metrics": calculate_metrics(results, candidate.get("label_mode", "three_class")), "predictions": results}
 
 
 def digest(data):
@@ -232,7 +252,7 @@ def load_data(data_file, *, data=None):
     }
 
 
-def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None):
+def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, label_mode="three_class"):
     """Save one fixed instruction and all selected requests without model calls."""
     dataset = load_data(data_file)
     source, data, rows, selected = (dataset[key] for key in ("source", "data", "rows", "selected"))
@@ -241,7 +261,8 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None):
     model_path = ROOT / "LLM/Qwen3.5-9B"
     if tokenizer is None:
         tokenizer = load_tokenizer()
-    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer)
+    spec = task_spec(label_mode)
+    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer, label_mode=label_mode)
     prepared = candidate["requests"]
     template = candidate["template"]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
@@ -272,14 +293,14 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None):
         "instruction_tokens": candidate["instruction_tokens"],
         "instruction_whitespace_policy": "strip outer whitespace only; archive exact text used in instruction.txt",
         "instruction_provenance": "user_supplied_file_authorship_unspecified",
-        "task_template_source": str(TASK_TEMPLATE_PATH.relative_to(ROOT)),
+        "task_template_source": str(spec["task_template_path"].relative_to(ROOT)),
         "task_template_sha256": digest(candidate["task_template"].encode("utf-8")),
         "script_sha256": digest(Path(__file__).read_bytes()),
         "evaluator_sha256": digest(Path(__file__).read_bytes()),
-        "label_mapping": LABEL_MAP, "sampling_seed": None,
+        "label_mode": label_mode, "label_mapping": spec["label_mapping"], "sampling_seed": None,
         "sampling": "all rows in source file order; no sampling or shuffle",
         "selected_records": [{"PID": r["PID"], "source_record": source_indices[r["PID"]], "raw_label": r["Label"]} for r in selected],
-        "class_counts": {label: counts[label] for label in LABEL_MAP.values()},
+        "class_counts": {label: counts[label] for label in spec["labels"]},
         "base_url": BASE_URL, "model": MODEL, "parameters": PARAMETERS,
         "context_tokens": CONTEXT_TOKENS, "text_token_limit": TEXT_TOKENS,
         "max_instruction_tokens": MAX_INSTRUCTION_TOKENS,

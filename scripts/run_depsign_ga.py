@@ -27,12 +27,13 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs/experiment_v1.json"
 TEMPLATE = ROOT / "prompts/ga_crossover_mutation_v1.txt"
+DEFAULT_OPERATOR_PROMPT = ROOT / "prompts/crossover_and_mutation_prompt.json"
 DEFAULT_DATA = ROOT / "data/processed/depsign/dev_100.tsv"
 PURPOSE = "ga_development_pilot_not_held_out_test"
+PARENT_SELECTION_MODES = ("wheel", "random", "tour")
 RULES = {
     "population_size": "from_prompt_file",
     "offspring_per_generation": "population_size",
-    "parent_selection": "two_stage_roulette_with_replacement",
     "zero_fitness_selection": "uniform",
     "operator_order": ["crossover", "mutation"],
     "operator_requests_per_proposal": 1,
@@ -48,9 +49,18 @@ RULES = {
 }
 
 
+def normalize_parent_selection(mode):
+    if mode == "two_stage_roulette_with_replacement":
+        return "wheel"
+    if mode not in PARENT_SELECTION_MODES:
+        raise ValueError("parent_selection must be wheel, random, or tour")
+    return mode
+
+
 def load_settings(config):
     parameters, attempts, retries = qwen_client.load_settings(config)
     search = config["search"]
+    normalize_parent_selection(search.get("parent_selection"))
     patience = search.get("early_stopping_patience")
     if type(patience) is not int or patience < 1:
         raise ValueError("early_stopping_patience must be a positive integer")
@@ -111,20 +121,42 @@ def positive_integer(value):
         raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
-def select_parents(population, seed):
-    """Sample N pool entries with replacement, then two distinct pool positions."""
+def select_parents(population, seed, mode="wheel"):
+    """Select N parent pairs using EvoPrompt's wheel, random, or size-two tour rules."""
+    mode = normalize_parent_selection(mode)
     n = len(population)
     scores = [p["macro_f1"] for p in population]
     if n < 2 or any(not math.isfinite(s) or not 0 <= s <= 1 for s in scores):
         raise ValueError("Require at least two individuals with finite fitness in [0, 1]")
-    total = sum(scores)
-    weights = [s / total for s in scores] if total else [1 / n] * n
     rng = random.Random(seed)
-    pool = rng.choices(range(n), weights=weights, k=n)
-    pairs = [rng.sample(range(n), 2) for _ in range(n)]
-    return {"seed": seed, "weights": weights, "pool_indices": pool,
+    weights = None
+    tournaments = []
+    if mode == "wheel":
+        total = sum(scores)
+        weights = [s / total for s in scores] if total else [1 / n] * n
+        # Preserve the original random-call order for existing wheel seeds.
+        pool = rng.choices(range(n), weights=weights, k=n)
+        pairs = [rng.sample(range(n), 2) for _ in range(n)]
+    else:
+        pool = list(range(n))
+        if mode == "random":
+            pairs = [rng.sample(range(n), 2) for _ in range(n)]
+        else:
+            pairs = []
+            for _ in range(n):
+                groups = [rng.sample(range(n), 2), rng.sample(range(n), 2)]
+                tournaments.append(groups)
+                # max keeps the first drawn competitor on a score tie.
+                pairs.append([max(group, key=lambda i: scores[i]) for group in groups])
+    result = {"mode": mode, "seed": seed, "weights": weights, "pool_indices": pool,
             "pool_ids": [population[i]["id"] for i in pool], "pair_positions": pairs,
             "parent_ids": [[population[pool[i]]["id"] for i in pair] for pair in pairs]}
+    if mode == "tour":
+        result.update(tournament_size=2, tournament_tie_break="first_drawn",
+                      tournament_groups=tournaments,
+                      tournament_group_ids=[[[population[i]["id"] for i in group] for group in groups]
+                                            for groups in tournaments])
+    return result
 
 
 def unique_instructions(population):
@@ -150,35 +182,93 @@ def select_survivors(population, count, deduplication="none"):
     return ranked[:count]
 
 
-def operator_contract(operations):
-    limit = RULES["max_crossover_tokens"]
-    if operations["crossover"] and operations["mutation"]:
-        return ('First combine the two parent instructions into a short crossover instruction. '
-                'Then mutate that crossover instruction into the final instruction. '
-                'Return exactly two fields: {"crossover":"combined instruction","instruction":"mutated instruction"}. '
-                f'Keep crossover within {limit} tokens and instruction within 256 tokens. '
-                'These are ceilings; prefer short edits so the entire JSON fits the output budget.')
-    if operations["crossover"]:
-        return ('Combine the two parent instructions. Do not perform mutation. '
-                'Return exactly one field: {"crossover":"combined instruction"}. '
-                f'Keep it within {limit} tokens. The program will use this as the final instruction.')
-    if operations["mutation"]:
-        return ('Mutate the first parent instruction only; ignore the second parent. Do not perform crossover. '
-                'Return exactly one field: {"instruction":"mutated instruction"}. Keep it within 256 tokens.')
-    raise ValueError("No generation request is needed when both operators are disabled")
+def load_operator_prompts(data, name=None):
+    prompts = json.loads(data.decode("utf-8"), object_pairs_hook=pipeline.unique_object)
+    if isinstance(prompts, dict) and "prompts" in prompts:
+        if set(prompts) != {"prompts"} or not isinstance(prompts["prompts"], list) or not prompts["prompts"]:
+            raise ValueError("Operator prompt collection must contain a nonempty prompts list")
+        by_name = {}
+        for item in prompts["prompts"]:
+            if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not item["name"].strip():
+                raise ValueError("Every operator prompt entry requires a nonempty name")
+            if item["name"] in by_name:
+                raise ValueError(f"Duplicate operator prompt name: {item['name']}")
+            by_name[item["name"]] = item
+        selected = name if name is not None else "baseline"
+        if selected not in by_name:
+            raise ValueError(f"Unknown operator prompt name {selected!r}; available: {', '.join(by_name)}")
+        prompts = by_name[selected]
+    elif name is not None and isinstance(prompts, dict) and prompts.get("name") != name:
+        raise ValueError(f"Operator prompt file does not contain name {name!r}")
+    required = {"name", "both", "crossover_only", "mutation_only"}
+    if not isinstance(prompts, dict) or not required <= prompts.keys() or prompts.keys() - required - {"description", "feedback"}:
+        raise ValueError("Operator prompt file requires name, both, crossover_only, mutation_only; description is optional")
+    if any(not isinstance(prompts[key], str) or not prompts[key].strip() for key in required):
+        raise ValueError("Operator prompt fields must be nonempty strings")
+    if "description" in prompts and not isinstance(prompts["description"], str):
+        raise ValueError("Operator prompt description must be a string")
+    if prompts.get("feedback", "none") not in ("none", "parent_metrics"):
+        raise ValueError("Operator feedback must be none or parent_metrics")
+    allowed = {"{{MAX_CROSSOVER_TOKENS}}", "{{MAX_INSTRUCTION_TOKENS}}"}
+    for key in ("both", "crossover_only", "mutation_only"):
+        markers = set(re.findall(r"\{\{.*?\}\}", prompts[key], re.DOTALL))
+        if markers - allowed:
+            raise ValueError(f"Unsupported placeholder in operator prompt {key}: {sorted(markers - allowed)}")
+    return prompts
 
 
-def build_request(task, template, parents, parameters, tokenizer, operations=None):
+def operator_contract(operations, prompts=None):
+    if not any(operations.values()):
+        raise ValueError("No generation request is needed when both operators are disabled")
+    if prompts is None:
+        prompts = load_operator_prompts(DEFAULT_OPERATOR_PROMPT.read_bytes())
+    key = ("both" if operations["crossover"] and operations["mutation"] else
+           "crossover_only" if operations["crossover"] else "mutation_only")
+    return (prompts[key].replace("{{MAX_CROSSOVER_TOKENS}}", str(RULES["max_crossover_tokens"]))
+            .replace("{{MAX_INSTRUCTION_TOKENS}}", str(RULES["max_instruction_tokens"])))
+
+
+def parent_feedback(parents, operations, *, allow_unscored=False):
+    # Mutation-only edits the first parent; the other parent is not evidence for it.
+    selected = parents if operations["crossover"] else parents[:1]
+    records = []
+    for parent in selected:
+        record = {"instruction": parent["instruction"]}
+        if "performance" not in parent:
+            if not allow_unscored:
+                raise ValueError(f"Missing measured performance for parent {parent['id']}")
+            record["performance"] = None
+            record["feedback_status"] = "not_evaluated_preparation_placeholder_only"
+        else:
+            record.update({key: parent["performance"][key] for key in ("macro_f1", "confusion_matrix")})
+        records.append(record)
+    return records
+
+
+def build_request(task, template, parents, parameters, tokenizer, operations=None, operator_prompts=None,
+                  *, allow_unscored=False):
     operations = operations if operations is not None else {"crossover": True, "mutation": True}
     if task.count("{{INSTRUCTION}}") != 1 or task.count("{{POST_JSON}}") != 1:
         raise ValueError("Unexpected fixed task template")
     sections = re.split(r"\r?\nInstruction[ \t]*\r?\n", task)
     if len(sections) != 2 or any(marker in sections[0] for marker in ("{{INSTRUCTION}}", "{{POST_JSON}}")):
         raise ValueError("Cannot isolate task definitions from fixed task template")
+    if operator_prompts is None:
+        operator_prompts = load_operator_prompts(DEFAULT_OPERATOR_PROMPT.read_bytes())
+    contract = operator_contract(operations, operator_prompts)
+    parent_input = [p["instruction"] for p in parents]
+    if operator_prompts.get("feedback", "none") == "parent_metrics":
+        parent_input = parent_feedback(parents, operations, allow_unscored=allow_unscored)
+        contract = (
+            "Parent records include development evaluation feedback. Confusion-matrix rows are true labels; "
+            "columns are predicted labels; cells are counts; INVALID means an invalid classification output. "
+            "Each row sum is the number of true examples of that class. Metrics belong to the instruction in the same record, "
+            "not to the untested crossover or child. Aggregate errors suggest hypotheses, not causes. "
+            "Do not copy metrics into the instruction. " + contract)
     replacements = {"{{TASK_SPEC_JSON}}": json.dumps(sections[0].strip(), ensure_ascii=False),
-                    "{{PARENTS_JSON}}": json.dumps([p["instruction"] for p in parents], ensure_ascii=False),
+                    "{{PARENTS_JSON}}": json.dumps(parent_input, ensure_ascii=False, separators=(",", ":") if operator_prompts.get("feedback") == "parent_metrics" else None),
                     "{{OPERATIONS_JSON}}": json.dumps(operations),
-                    "{{OUTPUT_CONTRACT}}": operator_contract(operations)}
+                    "{{OUTPUT_CONTRACT}}": contract}
     if any(template.count(key) != 1 for key in replacements):
         raise ValueError("Unexpected GA template placeholders")
     # One substitution pass: placeholders inside supplied parent text are data.
@@ -270,8 +360,9 @@ def generation_metrics(generation, population):
             "best_macro_f1": max(item["macro_f1"] for item in population)}
 
 
-def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFAULT_DATA,
-                     seed=11, generations=None, prepare_only=False, save_details=True):
+def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
+                     seed=11, generations=None, prepare_only=False, save_details=True, label_mode="three_class",
+                     parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None):
     """Shared search loop; compact mode performs no intermediate file writes."""
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -290,21 +381,34 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
                "method_reference": "guo2024connecting", "script_sha256": evaluator.digest(Path(__file__).read_bytes())}
     print(f"GA output directory: {output}", flush=True)
     try:
-        paths = {"prompts_snapshot.json": Path(prompts_file).resolve(),
+        summary.update(evaluator.task_metadata(label_mode))
+        spec = evaluator.task_spec(label_mode)
+        paths = {"prompts_snapshot.json": Path(prompts_file or pipeline.default_prompts(label_mode)).resolve(),
                  "data_snapshot.tsv": Path(data_file).resolve(), "config_snapshot.json": CONFIG,
-                 "task_template.txt": evaluator.TASK_TEMPLATE_PATH, "generation_template.txt": TEMPLATE}
+                 "task_template.txt": spec["task_template_path"], "generation_template.txt": TEMPLATE,
+                 "operator_prompts.json": Path(operator_prompt_file).resolve()}
         frozen = {name: path.read_bytes() for name, path in paths.items()}
         if save_details:
             for name, data in frozen.items():
                 (output / name).write_bytes(data)
         summary["sources"] = {name: {"path": str(paths[name]), "sha256": evaluator.digest(data)}
                               for name, data in frozen.items()}
+        operator_prompts = load_operator_prompts(frozen["operator_prompts.json"], operator_prompt_name)
+        summary["operator_prompt"] = {**summary["sources"]["operator_prompts.json"], "name": operator_prompts["name"]}
+        feedback_mode = operator_prompts.get("feedback", "none")
+        summary["operator_feedback"] = feedback_mode
         config = json.loads(frozen["config_snapshot.json"])
         generations = validate_generations(config["search"]["generations_after_initialization"]
                                            if generations is None else generations)
         summary["requested_generations"] = generations
         summary["rules"]["generations_after_initialization"] = generations
         parameters, attempts, retries = load_settings(config)
+        selection_mode = normalize_parent_selection(
+            config["search"]["parent_selection"] if parent_selection is None else parent_selection)
+        summary["rules"]["parent_selection"] = selection_mode
+        if selection_mode == "tour":
+            summary["rules"].update(tournament_size=2, tournament_tie_break="first_drawn")
+        print(f"Parent selection: {selection_mode}", flush=True)
         patience = config["search"]["early_stopping_patience"]
         summary["rules"]["early_stopping_patience"] = patience
         crossover_probability = config["search"]["crossover_probability"]
@@ -342,6 +446,9 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
             model_path = evaluator.ROOT / "LLM/Qwen3.5-9B"
             common_inputs = {
                 "sample_count": len(samples), "source_sha256": evaluator.digest(dataset["data"]),
+                **evaluator.task_metadata(label_mode),
+                "class_counts": {label: sum(spec["label_mapping"][r["Label"]] == label for r in samples)
+                                 for label in spec["labels"]},
                 "evaluation_scope": dataset["scope"],
                 "task_template_sha256": evaluator.digest(frozen["task_template.txt"]),
                 "tokenizer_files_sha256": {name: evaluator.digest((model_path / name).read_bytes())
@@ -360,14 +467,14 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
             nonlocal common_inputs
             if not save_details:
                 prepared_runs[item["id"]] = evaluator.prepare_candidate(
-                    item["instruction"], samples, tokenizer, task_template=task)
+                    item["instruction"], samples, tokenizer, task_template=task, label_mode=label_mode)
                 item["status"] = "prepared"
                 return
             check_sources()
             (output / item["instruction_file"]).write_text(item["instruction"], encoding="utf-8")
             prepared = evaluator.prepare_run(output / item["instruction_file"],
                                               output / item["evaluation_directory"],
-                                              tokenizer=tokenizer, data_file=paths["data_snapshot.tsv"])
+                                              tokenizer=tokenizer, data_file=paths["data_snapshot.tsv"], label_mode=label_mode)
             signature = pipeline.input_signature(prepared["manifest"])
             if common_inputs is not None and common_inputs != signature:
                 raise ValueError("Candidate evaluation inputs changed")
@@ -399,7 +506,8 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
             item["status"] = "running"
             prepared = prepared_runs[item["id"]]
             if save_details:
-                evaluator.evaluate_run(prepared)
+                evaluation = evaluator.evaluate_run(prepared)
+                metrics = evaluation["metrics"]
                 row, signature = pipeline.collect_evaluation(output, item, prepared)
                 if common_evaluation is not None and signature != common_evaluation:
                     raise ValueError("Evaluation conditions changed")
@@ -422,6 +530,9 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
             item.update(macro_f1=row["macro_f1"], status="complete_with_request_errors" if row["request_error_count"] else "complete")
             if row["request_error_count"]:
                 raise RuntimeError(f"{item['id']} has request errors; score retained")
+            if feedback_mode == "parent_metrics":
+                item["performance"] = {key: metrics[key] for key in (
+                    "macro_f1", "confusion_matrix")}
             # Retained individuals keep their measured score, not all request payloads in memory.
             prepared_runs.pop(item["id"])
 
@@ -439,7 +550,10 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
         # Validate the operator before any HTTP; actual selected pairs are checked again below.
         if crossover_probability > 0 or mutation_probability > 0:
             build_request(task, template, parents[:2], parameters, tokenizer,
-                          {"crossover": crossover_probability > 0, "mutation": mutation_probability > 0})
+                          {"crossover": crossover_probability > 0, "mutation": mutation_probability > 0},
+                          operator_prompts=operator_prompts, allow_unscored=True)
+        if feedback_mode == "parent_metrics":
+            summary["feedback_preparation"] = "Unscored placeholders only; complete feedback requests checked before each generation call."
         if prepare_only:
             summary.update(status="prepared", stage="prepared")
         else:
@@ -470,7 +584,7 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
                       f"retry {event['transport_retry']}: {event['outcome']}" + (f" — {reason}" if reason else ""), flush=True)
 
             for generation in range(1, generations + 1):
-                selection = select_parents(parents, selection_seed(seed, generation))
+                selection = select_parents(parents, selection_seed(seed, generation), selection_mode)
                 operators = select_operators(seed, generation, n, crossover_probability, mutation_probability)
                 selection.update(generation=generation, operator_selection=operators)
                 summary["selection"] = selection
@@ -488,7 +602,7 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
                     chosen = [parent_lookup[i] for i in parent_ids]
                     if any(operations.values()):
                         service_check()
-                        request, tokens = build_request(task, template, chosen, parameters, tokenizer, operations)
+                        request, tokens = build_request(task, template, chosen, parameters, tokenizer, operations, operator_prompts=operator_prompts)
                         try:
                             child = generate_child(request, tokenizer, seed=seed, slot=slot, generation=generation,
                                                    attempts=attempts, retries=retries, record=record, operations=operations)
@@ -583,8 +697,9 @@ def _run_search(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFA
     return summary
 
 
-def run_ga(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFAULT_DATA,
-           seed=11, generations=None, prepare_only=False, save_details=False):
+def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
+           seed=11, generations=None, prepare_only=False, save_details=False, label_mode="three_class",
+           parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None):
     """Write the compact report once on exit; default search uses memory only."""
     if generations is not None:
         validate_generations(generations)
@@ -593,7 +708,9 @@ def run_ga(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFAULT_D
         raise FileExistsError(f"Output directory already exists: {output}")
     report = CompactReport(output)
     arguments = dict(prompts_file=prompts_file, data_file=data_file, seed=seed, generations=generations,
-                     prepare_only=prepare_only, save_details=save_details)
+                     prepare_only=prepare_only, save_details=save_details, label_mode=label_mode,
+                     parent_selection=parent_selection, operator_prompt_file=operator_prompt_file,
+                     operator_prompt_name=operator_prompt_name)
     result = _run_search(output, **arguments)
     report(result)
     print(f"Results: {output}", flush=True)
@@ -602,9 +719,15 @@ def run_ga(output, *, prompts_file=pipeline.DEFAULT_PROMPTS, data_file=DEFAULT_D
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prompts-file", type=Path, default=pipeline.DEFAULT_PROMPTS)
+    parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES, default="three_class")
+    parser.add_argument("--prompts-file", type=Path, help="Default: humanPrompt_Bi.json for binary; humanPrompt.json otherwise")
     parser.add_argument("--data-file", type=Path, default=DEFAULT_DATA, help="Dev TSV; default: fixed dev_100.tsv")
+    parser.add_argument("--operator-prompt-file", type=Path, default=DEFAULT_OPERATOR_PROMPT,
+                        help="JSON file with both, crossover_only, and mutation_only instructions")
+    parser.add_argument("--operator-prompt-name", help="Select a named operator prompt in the JSON collection (default: baseline)")
     parser.add_argument("--seed", type=int, default=11)
+    parser.add_argument("--parent-selection", choices=PARENT_SELECTION_MODES,
+                        help="Override search.parent_selection in the config (default: wheel)")
     parser.add_argument("--generations", type=positive_integer,
                         help="Positive number of evolution steps after G0; defaults to search.generations_after_initialization")
     parser.add_argument("--output-dir", type=Path, help="New directory; existing output is never overwritten")
@@ -612,9 +735,13 @@ def main(argv=None):
     parser.add_argument("--save-details", action="store_true", help="Also keep snapshots, raw responses and all individual evaluations")
     args = parser.parse_args(argv)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    if args.label_mode == "binary":
+        stamp = "binary_" + stamp
     output = args.output_dir or ROOT / "data/processed/depsign/ga_runs" / stamp
     result = run_ga(output, prompts_file=args.prompts_file, data_file=args.data_file,
-                    seed=args.seed, generations=args.generations, prepare_only=args.prepare_only, save_details=args.save_details)
+                    seed=args.seed, generations=args.generations, prepare_only=args.prepare_only,
+                    save_details=args.save_details, label_mode=args.label_mode, parent_selection=args.parent_selection,
+                    operator_prompt_file=args.operator_prompt_file, operator_prompt_name=args.operator_prompt_name)
     if result["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

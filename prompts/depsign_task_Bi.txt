@@ -1,0 +1,25 @@
+Task
+Classify texts' labels.
+label definitions:
+- not_depression:
+  if the text reflect one of the following mannerism:
+  • If the statements have only one or two lines about irrelevant topics.
+  • If the statements reflect momentary feelings of present situation.
+  • If the statements are about asking questions about any or medication
+  • If the statement is about ask/seek help for friend’s difficulties
+- depression: 
+  if the text falls under these conditions:
+  • If the statements reflect change in feelings (feeling low for some time and feeling better for some time).
+  • If the statement shows that they aren’t feeling completely immersed in any situations
+  • If the statements show that they have hope for life.
+  • If the statements express more than one disorder conditions.
+  • If the statements explain about history of suicide attempts.
+Instruction
+{{INSTRUCTION}}
+
+Post (JSON string)
+{{POST_JSON}}
+
+Required output
+Output exactly one of: not_depression, depression
+Do not include an explanation, quotation marks, or any other text.

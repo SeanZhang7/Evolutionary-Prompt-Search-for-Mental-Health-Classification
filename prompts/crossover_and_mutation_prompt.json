@@ -1,0 +1,19 @@
+{
+  "prompts": [
+    {
+      "name": "baseline",
+      "description": "Original crossover and mutation instructions, extracted without changing the rendered text.",
+      "both": "First combine the two parent instructions into a short crossover instruction. Then mutate that crossover instruction into the final instruction. Return exactly two fields: {\"crossover\":\"combined instruction\",\"instruction\":\"mutated instruction\"}. Keep crossover within {{MAX_CROSSOVER_TOKENS}} tokens and instruction within {{MAX_INSTRUCTION_TOKENS}} tokens. These are ceilings; prefer short edits so the entire JSON fits the output budget.",
+      "crossover_only": "Combine the two parent instructions. Do not perform mutation. Return exactly one field: {\"crossover\":\"combined instruction\"}. Keep it within {{MAX_CROSSOVER_TOKENS}} tokens. The program will use this as the final instruction.",
+      "mutation_only": "Mutate the first parent instruction only; ignore the second parent. Do not perform crossover. Return exactly one field: {\"instruction\":\"mutated instruction\"}. Keep it within {{MAX_INSTRUCTION_TOKENS}} tokens."
+    },
+    {
+      "name": "v2",
+      "description": "Use measured parent development feedback to guide crossover and the direction and extent of mutation.",
+      "feedback": "parent_metrics",
+      "both": "Compare both parents' macro-F1 and confusion matrices to identify their strengths and weaknesses. Combine complementary guidance that may preserve strengths and reduce weaknesses; resolve conflicts and redundancy using the task definitions. Do not simply concatenate instructions. First produce a crossover instruction. Then mutate it using the original parents' feedback; the crossover has not been evaluated. Choose the direction and extent of revision from the feedback: prefer small targeted edits for localized errors, or broader restructuring for widespread weaknesses. Use row totals to judge class sizes and error proportions; be cautious with small classes. Preserve effective guidance and label meanings. Do not invent new diagnostic criteria. Return exactly {\"crossover\":\"combined instruction\",\"instruction\":\"mutated instruction\"}, without analysis. Keep crossover within {{MAX_CROSSOVER_TOKENS}} tokens and instruction within {{MAX_INSTRUCTION_TOKENS}} tokens; prefer concise edits.",
+      "crossover_only": "Compare both parents' macro-F1 and confusion matrices to identify their strengths and weaknesses. Combine complementary guidance that may preserve strengths and reduce weaknesses; resolve conflicts and redundancy using the task definitions. Do not simply concatenate instructions. Perform crossover only. Return exactly {\"crossover\":\"combined instruction\"}, without analysis. Keep it within {{MAX_CROSSOVER_TOKENS}} tokens.",
+      "mutation_only": "Mutate only the first parent, using its own performance feedback. Do not perform crossover. Choose the direction and extent of revision from the feedback: prefer small targeted edits for localized errors, or broader restructuring for widespread weaknesses. Use row totals to judge class sizes and error proportions; be cautious with small classes. Preserve effective guidance and label meanings. Do not invent new diagnostic criteria. Return exactly {\"instruction\":\"mutated instruction\"}, without analysis. Keep it within {{MAX_INSTRUCTION_TOKENS}} tokens."
+    }
+  ]
+}

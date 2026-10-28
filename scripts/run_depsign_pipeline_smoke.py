@@ -19,6 +19,11 @@ else:
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROMPTS = ROOT / "prompts/humanPrompt.json"
+def default_prompts(label_mode="three_class"):
+    classifier.task_spec(label_mode)
+    return ROOT / "prompts/humanPrompt_Bi.json" if label_mode == "binary" else DEFAULT_PROMPTS
+
+
 PURPOSE = "fixed_prompts_development_evaluation_not_held_out_test"
 COLUMNS = ["prompt_id", "instruction_file", "instruction_sha256", "evaluation_directory",
            "n", "macro_f1", "invalid_output_rate", "request_error_count",
@@ -118,7 +123,7 @@ def collect_evaluation(output, prompt, prepared):
         raise ValueError("File prompt and evaluated instruction contents differ")
     requests = prepared["candidate"]["requests"]
     counts = Counter(item["gold"] for item in requests)
-    expected_counts = {label: counts[label] for label in classifier.LABEL_MAP.values()}
+    expected_counts = {label: counts[label] for label in dict.fromkeys(manifest["label_mapping"].values())}
     if (metrics["n"] != len(requests) or manifest["sample_count"] != len(requests)
             or manifest["class_counts"] != expected_counts
             or {label: metrics["per_class"][label]["support"] for label in expected_counts} != expected_counts):
@@ -135,13 +140,16 @@ def collect_evaluation(output, prompt, prepared):
     return row, evaluation_signature(manifest)
 
 
-def run_pipeline(output, *, prompts_file=DEFAULT_PROMPTS, data_file=None, prepare_only=False):
+def run_pipeline(output, *, prompts_file=None, data_file=None, prepare_only=False, label_mode="three_class"):
     output = Path(output).resolve()
-    prompts_file = Path(prompts_file).resolve()
-    data_file = Path(data_file).resolve() if data_file is not None else (classifier.ROOT / classifier.CLEAN_DEV).resolve()
+    prompts_file = Path(prompts_file or default_prompts(label_mode)).resolve()
+    if data_file is None:
+        data_file = classifier.ROOT / ("data/processed/depsign/dev_100.tsv" if label_mode == "binary" else classifier.CLEAN_DEV)
+    data_file = Path(data_file).resolve()
     output.mkdir(parents=True, exist_ok=False)
     summary = {
         "status": "running", "stage": "load_prompts", "purpose": PURPOSE,
+        **classifier.task_metadata(label_mode),
         "prompts_source": str(prompts_file), "prompts_source_sha256": None,
         "prompts_snapshot": "prompts_snapshot.json", "requested_prompts": None,
         "prepared_prompts": 0, "scored_prompts": 0, "samples_per_prompt": None,
@@ -177,7 +185,7 @@ def run_pipeline(output, *, prompts_file=DEFAULT_PROMPTS, data_file=None, prepar
             save_summary(output, summary)
             prepared = classifier.prepare_run(output / prompt["instruction_file"],
                                                output / prompt["evaluation_directory"], tokenizer=tokenizer,
-                                               data_file=data_file)
+                                               data_file=data_file, label_mode=label_mode)
             signature = input_signature(prepared["manifest"])
             if common_inputs is not None and signature != common_inputs:
                 raise ValueError("Evaluation sample or classifier configuration changed while preparing prompts")
@@ -244,18 +252,21 @@ def run_pipeline(output, *, prompts_file=DEFAULT_PROMPTS, data_file=None, prepar
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prompts-file", type=Path, default=DEFAULT_PROMPTS,
-                        help="JSON file with a prompts list of {id, instruction} entries; default: prompts/humanPrompt.json")
+    parser.add_argument("--label-mode", choices=classifier.LABEL_MODES, default="three_class")
+    parser.add_argument("--prompts-file", type=Path,
+                        help="JSON file with a prompts list of {id, instruction} entries; defaults to humanPrompt.json or humanPrompt_Bi.json for binary")
     parser.add_argument("--data-file", type=Path,
-                        help="Evaluate ALL rows of this dev TSV; default: data/processed/depsign/dev_v1/dev_clean.tsv")
+                        help="Evaluate ALL rows of this dev TSV; default: cleaned dev for three_class, dev_100.tsv for binary")
     parser.add_argument("--prepare-only", action="store_true",
                         help="Check and save all file prompts and classifier requests; no model calls")
     parser.add_argument("--output-dir", type=Path, help="New output directory; existing directories are never overwritten")
     args = parser.parse_args(argv)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    if args.label_mode == "binary":
+        stamp = "binary_" + stamp
     output = args.output_dir or ROOT / "data/processed/depsign/pipeline_smoke_runs" / stamp
     summary = run_pipeline(output, prompts_file=args.prompts_file, data_file=args.data_file,
-                           prepare_only=args.prepare_only)
+                           prepare_only=args.prepare_only, label_mode=args.label_mode)
     if summary["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

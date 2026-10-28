@@ -33,6 +33,52 @@ python -B scripts/run_depsign_pipeline_smoke.py \
 
 Add `--prepare-only` to validate and save inputs without contacting the model server. For the complete cleaned dev set, use `--data-file data/processed/depsign/dev_v1/dev_clean.tsv`; this is also the default when `--data-file` is omitted.
 
+## Evaluate one prompt
+
+Copy an instruction block into `prompts/BestPrompts/best_prompt.txt`, then run:
+
+```bash
+python -B scripts/evaluate_depsign_prompt.py
+```
+
+Defaults: that prompt file and `data/processed/depsign/dev_100.tsv`. To select other inputs:
+
+```bash
+python -B scripts/evaluate_depsign_prompt.py \
+  --prompt-file prompts/BestPrompts/best_prompt.txt \
+  --data-file data/processed/depsign/dev_100.tsv
+```
+
+The text file contains only the instruction block; classification uses the same fixed task template and parameters as GA. Dataset files must use the existing DepSign TSV schema (`PID`, `Text data`, `Label`) and labels. `--prepare-only` validates inputs without contacting vLLM; `--output-dir` selects a new result directory.
+
+Each evaluation writes `Results/depsign/<timestamp>/`:
+
+- `report.md`: per-class precision, recall, F1, one-vs-rest accuracy, overall accuracy, macro-F1, confusion counts, and directional error rates.
+- `performance.json`: exact metrics, error-analysis summaries, the evaluated instruction/template, input hashes, and settings.
+- `predictions.csv`: every evaluated post, its label/prediction, actual input text, raw output, and request/format diagnostics.
+- `errors.csv`: only incorrect or invalid predictions, for inspection.
+
+Per-class **A** means `(TP + TN) / n` with that class positive and all other outputs negative; it differs from recall. Overall accuracy counts every invalid output/request failure as incorrect. Confusion rates divide by the true class's support, and ties are reported. Invalid outputs are separate from wrong-label confusions. Reports are written once on completion or handled interruption; partial evaluations are marked explicitly. No prompt generation or search occurs.
+
+## Binary DepSign
+
+Add `--label-mode binary` to GA, fixed-file evaluation, or single-prompt evaluation. Binary mode uses `prompts/depsign_task_Bi.txt`; GA and fixed-file evaluation default to `prompts/humanPrompt_Bi.json`. All three runners use the existing `dev_100.tsv` by default in this mode.
+
+```bash
+python -B scripts/run_depsign_ga.py --label-mode binary --generations 20 --prepare-only
+python -B scripts/run_depsign_ga.py --label-mode binary --generations 20
+
+# Evaluate the fixed binary prompts without search:
+python -B scripts/run_depsign_pipeline_smoke.py --label-mode binary
+
+# Evaluate one binary instruction saved from a run:
+python -B scripts/evaluate_depsign_prompt.py --label-mode binary --prompt-file path/to/best_prompt.txt
+```
+
+Source TSV labels are mapped in memory: `not depression` → `not_depression`, and `moderate` / `severe` → `depression`. The same 100 posts become 41 `not_depression` and 59 `depression`; source files are not rewritten or resampled. Model outputs must match one of the two target labels; `moderate` and `severe` outputs are invalid. Macro-F1 averages the two class F1 scores, including a zero score for an absent class. Binary and three-class macro-F1 measure different tasks and should not be compared as the same metric.
+
+Binary runs retain the existing output files and locations, with `binary_` prefixed to automatic run-directory names and the label mapping recorded in reports. GA still saves the best instruction, performance, and final generation-best-fitness curve; single-prompt evaluation reports two-class P/R/F1/A and directional errors. Search settings and early stopping are unchanged. Omit `--label-mode` (or use `--label-mode three_class`) for the original task. The original `humanPrompt.json` is preserved; binary wording adaptations are recorded in `humanPrompt_Bi.json`.
+
 ## GA search
 
 With the model server running, use the existing prompt file as the initial population:
@@ -46,17 +92,39 @@ Defaults: `prompts/humanPrompt.json`, `data/processed/depsign/dev_100.tsv`, and 
 
 Early stopping uses `search.early_stopping_patience` (default 5). After each completed generation, compare retained-population mean macro-F1 with the previous generation, starting with G0. Five consecutive unchanged comparisons stop the search; any change resets the counter. Use full-precision scores with an absolute tolerance of 1e-12 for floating-point noise, not the four-decimal plot labels. Early stopping is successful completion: the final report records `stopped_early`, `stop_reason`, requested and completed generations, and the last unchanged-generation count. It still saves the best prompt and one final curve. Failed or partially evaluated generations do not count.
 
-Each generation samples an N-entry roulette pool from the current population with replacement, selects two different pool positions per child, proposes N children, evaluates eligible children, and selects the next N parents by macro-F1. Zero total fitness uses uniform sampling; ties favor earlier creation. Surviving individuals keep their measured scores.
+Choose parent selection with `search.parent_selection` in `configs/experiment_v1.json` (default `"wheel"`), or override it for one run:
+
+```bash
+python -B scripts/run_depsign_ga.py --label-mode binary --generations 20 --parent-selection tour
+```
+
+| Mode | Parent selection for each child |
+| --- | --- |
+| `wheel` | Draw an N-entry pool with replacement, weighted by macro-F1, then sample two distinct pool positions. The positions may contain the same original individual. All-zero fitness uses uniform pool sampling. |
+| `random` | Uniformly sample two distinct individuals from the current population, ignoring scores. |
+| `tour` | Independently sample two groups of two distinct individuals. Each group's higher-scoring individual becomes a parent; ties favor the first drawn. Groups may overlap and both winners may be the same individual. |
+
+These rules follow [EvoPrompt's GA selection modes](https://github.com/beeevita/EvoPrompt/blob/main/evoluter.py). All modes use the search seed. The old config value `two_stage_roulette_with_replacement` remains an alias for `wheel`, preserving its existing seeded draws. `performance.json` records the effective mode; `--save-details` also records sampled groups/pools and parent IDs in `selection.json`.
+
+Each generation proposes N children, evaluates eligible children, and selects the next N parents by macro-F1 from parents plus children. Survivor ties favor earlier creation. Surviving individuals keep their measured scores.
 
 Set `search.deduplication` to `"exact_text"` (enabled) or `"none"` (disabled). When enabled, initial duplicate instructions are merged in file order; N is the remaining count and must be at least two. A child matching any earlier candidate in this run is discarded **before classification**, including copies and duplicates within the same generation. It consumes its proposal slot but triggers neither evaluation nor replacement generation. Select the best N from existing parents and the remaining children; parents ensure the population stays at N. Comparison strips outer whitespace but preserves case, punctuation, and internal whitespace. This moves deduplication earlier than [EvoPrompt's GA topk mode](https://github.com/beeevita/EvoPrompt/blob/main/evoluter.py#L393-L424), which evaluates children before deduplicating the union. With `"none"`, every child is evaluated separately. No previous run's scores are reused, and the supplied prompt file is not modified.
 
-`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (currently **0.9** and **0.8**). Each child draws both flags independently. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (currently **0.75**). It must be a finite number greater than zero. Classification remains fixed at temperature 0; other generation settings still follow the configured protocol. Edit the operator in [ga_crossover_mutation_v1.txt](prompts/ga_crossover_mutation_v1.txt).
+`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (currently **0.9** and **0.8**). Each child draws both flags independently. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (currently **0.75**). It must be a finite number greater than zero. Classification remains fixed at temperature 0; other generation settings still follow the configured protocol. Edit the operation instructions in [crossover_and_mutation_prompt.json](prompts/crossover_and_mutation_prompt.json). The outer request template remains [ga_crossover_mutation_v1.txt](prompts/ga_crossover_mutation_v1.txt).
+
+The operator JSON contains a `prompts` list. Each entry has a unique `name`, optional `description`, and three instruction strings: `both`, `crossover_only`, and `mutation_only`. The supplied `baseline` preserves the original rendered instructions. Token-limit placeholders `{{MAX_CROSSOVER_TOKENS}}` and `{{MAX_INSTRUCTION_TOKENS}}` are filled by the program. Keep the existing output fields: both operations require `crossover` and `instruction`; crossover-only requires `crossover`; mutation-only requires `instruction`. Output parsing and length checks still apply.
+
+To compare another version, duplicate the `baseline` entry in the same JSON, assign a new name (for example `v2`), edit its instructions, and select it with `--operator-prompt-name v2`. The default is `baseline`; unknown or duplicate names are rejected. `--operator-prompt-file` can still select a different file, and the earlier single-entry JSON format remains supported. The runner reads the file once at startup and validates the selected entry; `performance.json` records its name, file path, and SHA-256. Detailed mode also saves a snapshot. Setting `search.crossover_probability` to `0` disables crossover; both probabilities at `0` copy the first parent without a generation request.
+
+`--operator-prompt-name v2` enables performance-guided editing (`"feedback": "parent_metrics"`). Each parent record includes only its instruction, macro-F1, and a labeled confusion matrix (true-label rows, prediction columns, including INVALID). Mutation-only receives the first parent; crossover receives both. The feedback comes from existing evaluations on the same development file; it adds no classification requests. V2 asks the generator to combine complementary guidance and choose the direction and extent of mutation from the error patterns, while preserving label definitions. The intermediate crossover has no measured score. Execution probabilities still come from the config; feedback does not change them.
+
+Baseline defaults to `"feedback": "none"` and keeps its original requests. Performance feedback is kept in memory, with its mode recorded in the existing report. Preparation uses explicitly unscored placeholders because parent scores do not exist yet; every actual request is checked with real feedback against the context limit before generation. No parents or metrics are silently truncated. This is a development-feedback search variant, not a claim of improved held-out performance.
 
 By default, a successful run keeps only three files in `data/processed/depsign/ga_runs/<timestamp>/`:
 
 - `best_prompt.txt`: the best instruction block, selected by development macro-F1.
 - `performance.json`: its score, invalid-output rate, run status, settings, generation means, skipped invalid child slots, and the most recent generation issue (reason and raw output), if any.
-- `mean_f1.png`: one final curve of retained-population mean macro-F1 from G0 to the last completed generation. `performance.json` also records distinct prompt counts, skipped duplicates, and actual evaluations.
+- `best_fitness.png`: one final curve of retained-population maximum macro-F1 from G0 to the last completed generation. `performance.json` also records distinct prompt counts, skipped duplicates, and actual evaluations.
 
 Default GA runs use memory only during search: inputs and tokenizer checksums are read once at startup, and no detailed temporary files are created. Input-file edits apply to the next run. Reports are written and the curve is drawn once at completion, handled failure, or Ctrl+C; interrupted runs include only completed evaluations and generations. Add `--save-details` only when persistent snapshots and raw per-candidate logs are needed for debugging. Preparation alone writes only `performance.json`. Plotting uses Matplotlib, included in the environment requirements.
 

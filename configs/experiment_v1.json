@@ -41,9 +41,9 @@
     "generations_after_initialization": 1,
     "early_stopping_patience": 5,
     "offspring_per_generation": "population_size",
-    "parent_selection": "two_stage_roulette_with_replacement",
+    "parent_selection": "wheel",
     "zero_fitness_selection": "uniform",
-    "crossover_probability": 0.5,
+    "crossover_probability": 0.8,
     "mutation_probability": 0.8,
     "operator_order": [
       "crossover",

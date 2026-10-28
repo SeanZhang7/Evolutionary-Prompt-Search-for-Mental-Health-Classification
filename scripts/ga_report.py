@@ -1,4 +1,4 @@
-"""Small GA report: best instruction, performance metadata, generation mean plot."""
+"""Small GA report: best instruction, performance metadata, generation best-fitness plot."""
 
 import json
 
@@ -30,11 +30,16 @@ class CompactReport:
         report = {
             "status": summary["status"], "error": summary["error"], "stage": summary["stage"],
             "purpose": summary["purpose"], "seed": summary["seed"],
+            "label_mode": summary.get("label_mode", "three_class"),
+            "labels": summary.get("labels"), "label_mapping": summary.get("label_mapping"),
             "best": best_metrics,
             "best_scope": "completed_error_free_candidates_in_this_run",
             "prompt_content": "instruction block inserted into the fixed task template",
             "data": summary.get("sources", {}).get("data_snapshot.tsv"),
             "task_template": summary.get("sources", {}).get("task_template.txt"),
+            "operator_prompt": summary.get("operator_prompt"),
+            "operator_feedback": summary.get("operator_feedback", "none"),
+            "feedback_preparation": summary.get("feedback_preparation"),
             "generation_parameters": summary.get("generation_parameters"),
             "classification_parameters": summary.get("classification_parameters"),
             "candidate_evaluations": summary["candidate_evaluations"],
@@ -45,6 +50,9 @@ class CompactReport:
             "stopped_early": summary.get("stopped_early", False),
             "stop_reason": summary.get("stop_reason"),
             "early_stopping_patience": summary["rules"].get("early_stopping_patience"),
+            "parent_selection": summary["rules"].get("parent_selection"),
+            "tournament_size": summary["rules"].get("tournament_size"),
+            "tournament_tie_break": summary["rules"].get("tournament_tie_break"),
             "unchanged_mean_generations": summary.get("unchanged_mean_generations", 0),
             "crossover_probability": summary["rules"].get("crossover_probability"),
             "mutation_probability": summary["rules"].get("mutation_probability"),
@@ -66,6 +74,8 @@ class CompactReport:
             "completed_classification_requests": summary.get("logged_classification_requests", 0),
             "evaluation_inputs": summary.get("evaluation_inputs"),
             "generation_metrics": history,
+            "plot_metric": "best_macro_f1",
+            "best_fitness_definition": "Maximum individual macro-F1 in the retained population of each completed generation. G0 is initialization.",
             "mean_f1_definition": "Arithmetic mean of individual macro-F1 in the retained population after configured deduplication and selection. G0 is initialization.",
         }
         self.write("performance.json", json.dumps(report, ensure_ascii=False, indent=2) + "\n")
@@ -82,22 +92,22 @@ class CompactReport:
         self.Canvas(figure)
         axis = figure.subplots()
         generations = [row["generation"] for row in history]
-        means = [row["mean_macro_f1"] for row in history]
-        axis.plot(generations, means, marker="o", linewidth=2)
+        best_scores = [row["best_macro_f1"] for row in history]
+        axis.plot(generations, best_scores, marker="o", linewidth=2)
         label_step = max(1, (len(generations) + 9) // 10)
         labeled = sorted(set(range(0, len(generations), label_step)) | {len(generations) - 1})
         for index in labeled:
-            generation, mean = generations[index], means[index]
-            axis.annotate(f"{mean:.4f}", (generation, mean), xytext=(0, 9),
+            generation, best = generations[index], best_scores[index]
+            axis.annotate(f"{best:.4f}", (generation, best), xytext=(0, 9),
                           textcoords="offset points", ha="center")
-        axis.set(xlabel="Generation (G0 = initial population)", ylabel="Mean macro-F1",
-                 title="Retained population on development data", ylim=(-0.05, 1.08))
+        axis.set(xlabel="Generation (G0 = initial population)", ylabel="Best fitness (macro-F1)",
+                 title="Best fitness in each generation", ylim=(-0.05, 1.08))
         ticks = [generations[index] for index in labeled]
         axis.set_xticks(ticks, [f"G{value}" for value in ticks])
         if len(generations) == 1:
             axis.set_xlim(generations[0] - 0.5, generations[0] + 0.5)
         axis.grid(alpha=0.25)
-        temporary = self.output / ".mean_f1.png.tmp"
+        temporary = self.output / ".best_fitness.png.tmp"
         figure.savefig(temporary, format="png", dpi=160)
-        temporary.replace(self.output / "mean_f1.png")
+        temporary.replace(self.output / "best_fitness.png")
         figure.clear()
