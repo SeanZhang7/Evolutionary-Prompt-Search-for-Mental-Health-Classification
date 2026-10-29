@@ -14,6 +14,11 @@ fi
 project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd -- "$project_dir"
 model_dir="$project_dir/LLM/Qwen3.5-9B"
+context_tokens="${PROMPT_SEARCH_CONTEXT_TOKENS:-2048}"
+if [[ ! "$context_tokens" =~ ^[1-9][0-9]*$ ]]; then
+  echo "PROMPT_SEARCH_CONTEXT_TOKENS must be a positive integer." >&2
+  exit 2
+fi
 
 # Non-interactive scripts need Conda's shell initialization before activation.
 if [[ -n "${CONDA_EXE:-}" && -x "$CONDA_EXE" ]]; then
@@ -46,7 +51,7 @@ server_command=(
   --port 8000
   --dtype bfloat16
   --tensor-parallel-size 1
-  --max-model-len 2048
+  --max-model-len "$context_tokens"
   --max-num-seqs 1
   --gpu-memory-utilization 0.90
   --language-model-only

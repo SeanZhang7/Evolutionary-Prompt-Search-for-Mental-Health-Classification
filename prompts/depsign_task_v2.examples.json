@@ -1,0 +1,55 @@
+{
+  "label_mode": "three_class",
+  "seed": 11,
+  "sampling": "random.Random(seed).choice once per class, in listed label order, source TSV order preserved; no length or content filtering",
+  "label_order": [
+    "not depression",
+    "moderate",
+    "severe"
+  ],
+  "exclusion": "Exclude any source PID or outer-whitespace-stripped text present in dev_100.tsv",
+  "source": {
+    "path": "data/processed/depsign/dev_v1/dev_clean.tsv",
+    "sha256": "b32c71f1200884232e632f10c055439a07df1c0e33305b4aedd5d0e8ac2ac375"
+  },
+  "excluded_dataset": {
+    "path": "data/processed/depsign/dev_100.tsv",
+    "sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70"
+  },
+  "base_template": {
+    "path": "prompts/depsign_task_v1.txt",
+    "sha256": "18955063f15181a5a6f5298cf2939e1360969822c203b8473c60b0b8f636d320"
+  },
+  "template": {
+    "path": "prompts/depsign_task_v2.txt",
+    "sha256": "e0472872fda0653e6f16e3171176eccb366378514d7d4c75fcc4374fa670530a"
+  },
+  "eligible_counts": {
+    "not depression": 1776,
+    "moderate": 2252,
+    "severe": 352
+  },
+  "examples": [
+    {
+      "PID": "dev_pid_3257",
+      "source_record": 3251,
+      "raw_label": "not depression",
+      "label": "not_depression",
+      "text_sha256": "80175b3a9649e588a8ca2cca851d1c93a2e8fb361ddbd169b892b23ec9a6043c"
+    },
+    {
+      "PID": "dev_pid_1953",
+      "source_record": 1950,
+      "raw_label": "moderate",
+      "label": "moderate",
+      "text_sha256": "713dc89ee86d8f3c3b41e193fda613a09a74a56c5381b6c39979136ae30c63c0"
+    },
+    {
+      "PID": "dev_pid_4370",
+      "source_record": 4354,
+      "raw_label": "severe",
+      "label": "severe",
+      "text_sha256": "233d9f4bbf853274df0adb789da7ddf0104e733993333d82d65d5b89d6610585"
+    }
+  ]
+}

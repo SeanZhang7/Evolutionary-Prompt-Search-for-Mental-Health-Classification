@@ -5,3 +5,5 @@ vllm==0.32.0
 transformers==5.19.0
 torch==2.13.0+cu132
 matplotlib==3.11.2
+scikit-learn==1.9.1
+sacrebleu==2.6.0

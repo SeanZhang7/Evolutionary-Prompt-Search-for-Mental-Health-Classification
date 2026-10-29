@@ -18,11 +18,13 @@ if __package__:
     from . import qwen_client
     from . import run_depsign_pipeline_smoke as pipeline
     from .ga_report import CompactReport
+    from .prompt_similarity import PromptSimilarityReport
 else:
     import depsign_evaluator as evaluator
     import qwen_client
     import run_depsign_pipeline_smoke as pipeline
     from ga_report import CompactReport
+    from prompt_similarity import PromptSimilarityReport
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs/experiment_v1.json"
@@ -279,7 +281,8 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
                                              add_generation_prompt=True, enable_thinking=False)
     tokens = len(tokenizer.encode(rendered, add_special_tokens=False))
     if tokens + parameters["max_tokens"] > evaluator.CONTEXT_TOKENS:
-        raise ValueError(f"GA prompt plus output exceeds context budget: {tokens} + {parameters['max_tokens']}")
+        raise ValueError(f"GA prompt plus output exceeds context budget: {tokens} + {parameters['max_tokens']} > {evaluator.CONTEXT_TOKENS}; "
+                         "set PROMPT_SEARCH_CONTEXT_TOKENS consistently for the client and vLLM server")
     return {"model": evaluator.MODEL, "messages": messages, **parameters}, tokens
 
 
@@ -362,7 +365,8 @@ def generation_metrics(generation, population):
 
 def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                      seed=11, generations=None, prepare_only=False, save_details=True, label_mode="three_class",
-                     parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None):
+                     parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
+                     task_template_file=None):
     """Shared search loop; compact mode performs no intermediate file writes."""
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -381,8 +385,9 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                "method_reference": "guo2024connecting", "script_sha256": evaluator.digest(Path(__file__).read_bytes())}
     print(f"GA output directory: {output}", flush=True)
     try:
-        summary.update(evaluator.task_metadata(label_mode))
-        spec = evaluator.task_spec(label_mode)
+        summary.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file),
+                       context_tokens=evaluator.CONTEXT_TOKENS)
+        spec = evaluator.task_spec(label_mode, task_template_file=task_template_file)
         paths = {"prompts_snapshot.json": Path(prompts_file or pipeline.default_prompts(label_mode)).resolve(),
                  "data_snapshot.tsv": Path(data_file).resolve(), "config_snapshot.json": CONFIG,
                  "task_template.txt": spec["task_template_path"], "generation_template.txt": TEMPLATE,
@@ -446,7 +451,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             model_path = evaluator.ROOT / "LLM/Qwen3.5-9B"
             common_inputs = {
                 "sample_count": len(samples), "source_sha256": evaluator.digest(dataset["data"]),
-                **evaluator.task_metadata(label_mode),
+                "context_tokens": evaluator.CONTEXT_TOKENS,
+                **evaluator.task_metadata(label_mode, task_template_file=task_template_file),
                 "class_counts": {label: sum(spec["label_mapping"][r["Label"]] == label for r in samples)
                                  for label in spec["labels"]},
                 "evaluation_scope": dataset["scope"],
@@ -474,7 +480,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             (output / item["instruction_file"]).write_text(item["instruction"], encoding="utf-8")
             prepared = evaluator.prepare_run(output / item["instruction_file"],
                                               output / item["evaluation_directory"],
-                                              tokenizer=tokenizer, data_file=paths["data_snapshot.tsv"], label_mode=label_mode)
+                                              tokenizer=tokenizer, data_file=paths["data_snapshot.tsv"], label_mode=label_mode,
+                                              task_template_file=spec["task_template_path"])
             signature = pipeline.input_signature(prepared["manifest"])
             if common_inputs is not None and common_inputs != signature:
                 raise ValueError("Candidate evaluation inputs changed")
@@ -699,7 +706,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
 
 def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
            seed=11, generations=None, prepare_only=False, save_details=False, label_mode="three_class",
-           parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None):
+           parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
+           task_template_file=None):
     """Write the compact report once on exit; default search uses memory only."""
     if generations is not None:
         validate_generations(generations)
@@ -707,12 +715,15 @@ def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
     if output.exists():
         raise FileExistsError(f"Output directory already exists: {output}")
     report = CompactReport(output)
+    similarity = PromptSimilarityReport(output)
     arguments = dict(prompts_file=prompts_file, data_file=data_file, seed=seed, generations=generations,
                      prepare_only=prepare_only, save_details=save_details, label_mode=label_mode,
                      parent_selection=parent_selection, operator_prompt_file=operator_prompt_file,
-                     operator_prompt_name=operator_prompt_name)
+                     operator_prompt_name=operator_prompt_name, task_template_file=task_template_file)
     result = _run_search(output, **arguments)
     report(result)
+    if result["status"] != "prepared":
+        similarity(result)
     print(f"Results: {output}", flush=True)
     return result
 
@@ -720,6 +731,8 @@ def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES, default="three_class")
+    parser.add_argument("--task-template-file", type=Path,
+                        help="Override the fixed classification task template (must match the label mode)")
     parser.add_argument("--prompts-file", type=Path, help="Default: humanPrompt_Bi.json for binary; humanPrompt.json otherwise")
     parser.add_argument("--data-file", type=Path, default=DEFAULT_DATA, help="Dev TSV; default: fixed dev_100.tsv")
     parser.add_argument("--operator-prompt-file", type=Path, default=DEFAULT_OPERATOR_PROMPT,
@@ -741,7 +754,8 @@ def main(argv=None):
     result = run_ga(output, prompts_file=args.prompts_file, data_file=args.data_file,
                     seed=args.seed, generations=args.generations, prepare_only=args.prepare_only,
                     save_details=args.save_details, label_mode=args.label_mode, parent_selection=args.parent_selection,
-                    operator_prompt_file=args.operator_prompt_file, operator_prompt_name=args.operator_prompt_name)
+                    operator_prompt_file=args.operator_prompt_file, operator_prompt_name=args.operator_prompt_name,
+                    task_template_file=args.task_template_file)
     if result["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

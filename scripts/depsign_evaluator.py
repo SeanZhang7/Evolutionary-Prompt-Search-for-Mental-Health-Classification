@@ -13,6 +13,7 @@ import hashlib
 from importlib.metadata import version
 import io
 import json
+import os
 from pathlib import Path
 import time
 from urllib.error import HTTPError, URLError
@@ -27,24 +28,34 @@ LABELS = list(LABEL_MAP.values())
 LABEL_MODES = ("three_class", "binary")
 
 
-def task_spec(label_mode="three_class"):
+def task_spec(label_mode="three_class", *, task_template_file=None):
     if label_mode not in LABEL_MODES:
         raise ValueError(f"Unknown label mode: {label_mode}")
     mapping = (dict(LABEL_MAP) if label_mode == "three_class" else
                {"not depression": "not_depression", "moderate": "depression", "severe": "depression"})
+    template_path = (TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign_task_Bi.txt")
+    if task_template_file is not None:
+        template_path = Path(task_template_file).resolve()
+    if label_mode != "three_class" and template_path == (ROOT / "prompts/depsign_task_v2.txt").resolve():
+        raise ValueError("depsign_task_v2.txt requires --label-mode three_class")
     return {"label_mode": label_mode, "label_mapping": mapping,
             "labels": list(dict.fromkeys(mapping.values())),
-            "task_template_path": TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign_task_Bi.txt"}
+            "task_template_path": template_path}
 
 
-def task_metadata(label_mode="three_class"):
-    spec = task_spec(label_mode)
+def task_metadata(label_mode="three_class", *, task_template_file=None):
+    spec = task_spec(label_mode, task_template_file=task_template_file)
     return {**spec, "task_template_path": str(spec["task_template_path"])}
 
 
 BASE_URL = "http://127.0.0.1:8000"
 MODEL = "qwen35-9b"
-CONTEXT_TOKENS = 2048
+try:
+    CONTEXT_TOKENS = int(os.environ.get("PROMPT_SEARCH_CONTEXT_TOKENS", "2048"))
+except ValueError as exc:
+    raise ValueError("PROMPT_SEARCH_CONTEXT_TOKENS must be a positive integer") from exc
+if CONTEXT_TOKENS < 1:
+    raise ValueError("PROMPT_SEARCH_CONTEXT_TOKENS must be a positive integer")
 TEXT_TOKENS = 1500
 MAX_INSTRUCTION_TOKENS = 256
 PARAMETERS = {
@@ -106,7 +117,8 @@ def build_request(text, template, tokenizer):
     )
     count = len(tokenizer.encode(rendered, add_special_tokens=False))
     if count + PARAMETERS["max_tokens"] > CONTEXT_TOKENS:
-        raise ValueError(f"Prompt exceeds fixed context budget: {count}")
+        raise ValueError(f"Prompt plus output exceeds context budget: {count} + {PARAMETERS['max_tokens']} > {CONTEXT_TOKENS}; "
+                         "set PROMPT_SEARCH_CONTEXT_TOKENS consistently for the client and vLLM server")
     return {"model": MODEL, "messages": messages, **PARAMETERS}, {
         "original_text_tokens": len(ids), "input_text_used": used,
         "truncated": truncated, "rendered_prompt_tokens": count,
@@ -252,7 +264,8 @@ def load_data(data_file, *, data=None):
     }
 
 
-def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, label_mode="three_class"):
+def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, label_mode="three_class",
+                task_template_file=None):
     """Save one fixed instruction and all selected requests without model calls."""
     dataset = load_data(data_file)
     source, data, rows, selected = (dataset[key] for key in ("source", "data", "rows", "selected"))
@@ -261,8 +274,9 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, lab
     model_path = ROOT / "LLM/Qwen3.5-9B"
     if tokenizer is None:
         tokenizer = load_tokenizer()
-    spec = task_spec(label_mode)
-    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer, label_mode=label_mode)
+    spec = task_spec(label_mode, task_template_file=task_template_file)
+    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer, label_mode=label_mode,
+                                  task_template=spec["task_template_path"].read_text(encoding="utf-8"))
     prepared = candidate["requests"]
     template = candidate["template"]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
@@ -293,7 +307,7 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, lab
         "instruction_tokens": candidate["instruction_tokens"],
         "instruction_whitespace_policy": "strip outer whitespace only; archive exact text used in instruction.txt",
         "instruction_provenance": "user_supplied_file_authorship_unspecified",
-        "task_template_source": str(spec["task_template_path"].relative_to(ROOT)),
+        "task_template_source": str(spec["task_template_path"]),
         "task_template_sha256": digest(candidate["task_template"].encode("utf-8")),
         "script_sha256": digest(Path(__file__).read_bytes()),
         "evaluator_sha256": digest(Path(__file__).read_bytes()),

@@ -37,6 +37,7 @@ class CompactReport:
             "prompt_content": "instruction block inserted into the fixed task template",
             "data": summary.get("sources", {}).get("data_snapshot.tsv"),
             "task_template": summary.get("sources", {}).get("task_template.txt"),
+            "context_tokens": summary.get("context_tokens"),
             "operator_prompt": summary.get("operator_prompt"),
             "operator_feedback": summary.get("operator_feedback", "none"),
             "feedback_preparation": summary.get("feedback_preparation"),

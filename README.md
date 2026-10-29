@@ -60,6 +60,29 @@ Each evaluation writes `Results/depsign/<timestamp>/`:
 
 Per-class **A** means `(TP + TN) / n` with that class positive and all other outputs negative; it differs from recall. Overall accuracy counts every invalid output/request failure as incorrect. Confusion rates divide by the true class's support, and ties are reported. Invalid outputs are separate from wrong-label confusions. Reports are written once on completion or handled interruption; partial evaluations are marked explicitly. No prompt generation or search occurs.
 
+## Three-class few-shot V2
+
+[depsign_task_v2.txt](prompts/depsign_task_v2.txt) keeps V1's definitions and adds three fixed labeled examples after the task definitions, before the instruction. Seed 11 samples one post per original class from `dev_v1/dev_clean.tsv`, excluding dev100 by both PID and outer-whitespace-stripped text. Examples are `dev_pid_3257` (not_depression), `dev_pid_1953` (moderate), and `dev_pid_4370` (severe). [Sampling metadata](prompts/depsign_task_v2.examples.json) records their source, IDs, seed, selection rule, and hashes. Samples are not redrawn during runs.
+
+The full examples exceed the default 2,048-token budget for some requests. Set `PROMPT_SEARCH_CONTEXT_TOKENS=4096` in **both terminals**. If your server is already running at 2,048, stop it in its terminal before restarting:
+
+```bash
+# Server terminal
+PROMPT_SEARCH_CONTEXT_TOKENS=4096 ./start_vllm.sh
+
+# Client terminal (prompt-search environment)
+export PROMPT_SEARCH_CONTEXT_TOKENS=4096
+python -B scripts/run_depsign_ga.py --label-mode three_class \
+  --task-template-file prompts/depsign_task_v2.txt --generations 20 --prepare-only
+# Remove --prepare-only to run the search.
+
+python -B scripts/evaluate_depsign_prompt.py --label-mode three_class \
+  --task-template-file prompts/depsign_task_v2.txt \
+  --prompt-file prompts/BestPrompts/best_prompt.txt
+```
+
+Both runners default to dev100 and record the selected template and context limit. Omitting `--task-template-file` keeps the original template for the label mode. This flag is independent of `--operator-prompt-name v2`, which controls performance-guided crossover/mutation. GA also includes the few-shot examples in its task background for generation. Complete requests are checked before inference; examples and parents are never silently truncated. The existing 1,500-token cap on the evaluated post is unchanged. Exclude the three demonstration posts if evaluating on a larger dev subset; do not score the examples themselves as unseen data.
+
 ## Binary DepSign
 
 Add `--label-mode binary` to GA, fixed-file evaluation, or single-prompt evaluation. Binary mode uses `prompts/depsign_task_Bi.txt`; GA and fixed-file evaluation default to `prompts/humanPrompt_Bi.json`. All three runners use the existing `dev_100.tsv` by default in this mode.
@@ -90,7 +113,7 @@ python -B scripts/run_depsign_ga.py --generations 5
 
 Defaults: `prompts/humanPrompt.json`, `data/processed/depsign/dev_100.tsv`, and seed 11. `--generations G` accepts a positive integer and overrides `search.generations_after_initialization` in `configs/experiment_v1.json` (currently 1). G is the maximum number of evolution steps after G0. Other options are `--prompts-file`, `--data-file`, `--seed`, and `--output-dir`. Preparation makes no HTTP requests; it checks all initial classification requests and a sample parent pair. Actual selected pairs are checked before generation. Each command creates a separate run; there is no resume support.
 
-Early stopping uses `search.early_stopping_patience` (default 5). After each completed generation, compare retained-population mean macro-F1 with the previous generation, starting with G0. Five consecutive unchanged comparisons stop the search; any change resets the counter. Use full-precision scores with an absolute tolerance of 1e-12 for floating-point noise, not the four-decimal plot labels. Early stopping is successful completion: the final report records `stopped_early`, `stop_reason`, requested and completed generations, and the last unchanged-generation count. It still saves the best prompt and one final curve. Failed or partially evaluated generations do not count.
+Early stopping uses `search.early_stopping_patience` (default 5). After each completed generation, compare retained-population mean macro-F1 with the previous generation, starting with G0. Five consecutive unchanged comparisons stop the search; any change resets the counter. Use full-precision scores with an absolute tolerance of 1e-12 for floating-point noise, not the four-decimal plot labels. Early stopping is successful completion: the final report records `stopped_early`, `stop_reason`, requested and completed generations, and the last unchanged-generation count. It still saves the best prompt, the fitness curve, and similarity analysis for completed generations. Failed or partially evaluated generations do not count.
 
 Choose parent selection with `search.parent_selection` in `configs/experiment_v1.json` (default `"wheel"`), or override it for one run:
 
@@ -120,17 +143,33 @@ To compare another version, duplicate the `baseline` entry in the same JSON, ass
 
 Baseline defaults to `"feedback": "none"` and keeps its original requests. Performance feedback is kept in memory, with its mode recorded in the existing report. Preparation uses explicitly unscored placeholders because parent scores do not exist yet; every actual request is checked with real feedback against the context limit before generation. No parents or metrics are silently truncated. This is a development-feedback search variant, not a claim of improved held-out performance.
 
-By default, a successful run keeps only three files in `data/processed/depsign/ga_runs/<timestamp>/`:
+By default, a successful run with completed evolution steps saves five files in `data/processed/depsign/ga_runs/<timestamp>/`:
 
 - `best_prompt.txt`: the best instruction block, selected by development macro-F1.
 - `performance.json`: its score, invalid-output rate, run status, settings, generation means, skipped invalid child slots, and the most recent generation issue (reason and raw output), if any.
 - `best_fitness.png`: one final curve of retained-population maximum macro-F1 from G0 to the last completed generation. `performance.json` also records distinct prompt counts, skipped duplicates, and actual evaluations.
+- `prompt_similarity.json`: instruction text index, actual parent links, operation flags, pair/child scores, generation means and counts, metric settings, and library versions.
+- `prompt_similarity.png`: two panels showing mean TF-IDF cosine and BLEU against actual parents, starting at G1.
 
 Default GA runs use memory only during search: inputs and tokenizer checksums are read once at startup, and no detailed temporary files are created. Input-file edits apply to the next run. Reports are written and the curve is drawn once at completion, handled failure, or Ctrl+C; interrupted runs include only completed evaluations and generations. Add `--save-details` only when persistent snapshots and raw per-candidate logs are needed for debugging. Preparation alone writes only `performance.json`. Plotting uses Matplotlib, included in the environment requirements.
 
 For N initial prompts after deduplication, M posts, and G evolution steps, `(G + 1) × N × M` is the classification-request upper bound. Early stopping can reduce this budget further. Each skipped duplicate or invalid child saves M classification requests; N=10, M=100, G=5 requires at most 6,000. Reports distinguish this budget from actual evaluations and completed requests. Generation requests depend on operation draws: before retries, the expected number is `G × N × [1 − (1 − p_cross)(1 − p_mutate)]`.
 
 Crossover and final instructions each have a 256-token ceiling; the full JSON output remains limited to 512 tokens, with context checks before inference. After three invalid generation outputs, discard that child slot without replacement and continue. Parents keep the population at N even if all children fail. Reports record skipped slots and per-generation counts; `complete` means the generation limit or early-stopping criterion was reached, not that every proposed child was valid. Transient request errors allow one retry, then stop; other service errors and classification request failures also stop the search. Structural validation does not establish semantic correctness or improved performance.
+
+## Prompt similarity
+
+New GA runs analyze similarity once after saving the main report. No additional model requests are made. Crossover children are compared separately with both parent slots; mutation-only and copied children use only the first parent. Average parent scores within each child, then average children within each completed generation. Valid duplicates skipped by classification and direct copies are included; copied/duplicate counts are reported. Invalid generation slots and incomplete generations are excluded. Only instruction text is analyzed.
+
+TF-IDF uses lowercase word unigrams/bigrams, no stop-word removal, smoothed IDF, and L2 normalization. One vectorizer is fitted to exact unique initial and completed-generation child instructions for the whole run. Cosine is missing if either vector has no features. Sentence BLEU uses SacreBLEU `13a`, lowercase text, up to four grams, `exp` smoothing and effective order; the child is the candidate, each parent is a separate reference, and scores are divided by 100. Both metrics describe wording overlap, not classification quality; BLEU is directional and TF-IDF weights depend on the run.
+
+Missing means appear as gaps labeled N/A; G0 alone produces no similarity plot. Preparation only checks dependencies/inputs. Analysis failures are reported separately in `prompt_similarity.json` and the terminal while preserving GA results. Historical runs are not modified. The new files contain no posts or classification responses.
+
+The required packages are checked before inference and pinned in `requirements-prompt-search.txt`. Existing environments can install just the additions:
+
+```bash
+python -m pip install scikit-learn==1.9.1 sacrebleu==2.6.0
+```
 
 ## Prompts and data
 

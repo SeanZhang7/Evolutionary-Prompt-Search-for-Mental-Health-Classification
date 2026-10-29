@@ -134,16 +134,19 @@ def write_predictions(path, records):
         writer.writerows(records)
 
 
-def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA, prepare_only=False, label_mode="three_class"):
+def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA, prepare_only=False, label_mode="three_class",
+                   task_template_file=None):
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     records = []
     report = {"status": "preparing", "error": None, "purpose": "single_prompt_classification_evaluation",
               "requested_n": 0, "evaluated_n": 0, "metrics": None, "error_analysis": None,
               "model": evaluator.MODEL, "base_url": evaluator.BASE_URL,
+              "context_tokens": evaluator.CONTEXT_TOKENS,
               "classification_parameters": dict(evaluator.PARAMETERS), **evaluator.task_metadata(label_mode)}
     print(f"Results: {output}", flush=True)
     try:
+        report.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file))
         prompt_file = Path(prompt_file).resolve()
         prompt_bytes = prompt_file.read_bytes()
         dataset = evaluator.load_data(data_file)
@@ -152,7 +155,9 @@ def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA
         report["dataset"] = {"path": str(dataset["source"]), "sha256": evaluator.digest(dataset["data"]),
                              "class_counts": dict(Counter(report["label_mapping"][row["Label"]] for row in samples))}
         tokenizer = evaluator.load_tokenizer()
-        candidate = evaluator.prepare_candidate(prompt_bytes.decode("utf-8"), samples, tokenizer, label_mode=label_mode)
+        task = Path(report["task_template_path"]).read_text(encoding="utf-8")
+        candidate = evaluator.prepare_candidate(prompt_bytes.decode("utf-8"), samples, tokenizer, label_mode=label_mode,
+                                                task_template=task)
         report["prompt"] = {"path": str(prompt_file), "source_sha256": evaluator.digest(prompt_bytes),
                             "instruction": candidate["instruction"], "tokens": candidate["instruction_tokens"],
                             "instruction_sha256": evaluator.digest(candidate["instruction"].encode("utf-8"))}
@@ -210,6 +215,8 @@ def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES, default="three_class")
+    parser.add_argument("--task-template-file", type=Path,
+                        help="Override the fixed classification task template (must match the label mode)")
     parser.add_argument("--prompt-file", type=Path, default=DEFAULT_PROMPT,
                         help="One instruction block in a UTF-8 text file")
     parser.add_argument("--data-file", type=Path, default=DEFAULT_DATA,
@@ -221,7 +228,8 @@ def main(argv=None):
     if args.label_mode == "binary":
         stamp = "binary_" + stamp
     output = args.output_dir or RESULTS / stamp
-    report = run_evaluation(output, prompt_file=args.prompt_file, data_file=args.data_file, prepare_only=args.prepare_only, label_mode=args.label_mode)
+    report = run_evaluation(output, prompt_file=args.prompt_file, data_file=args.data_file, prepare_only=args.prepare_only,
+                            label_mode=args.label_mode, task_template_file=args.task_template_file)
     if report["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

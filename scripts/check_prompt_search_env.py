@@ -26,6 +26,8 @@ def main():
     import torch
     import transformers
     import vllm
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sacrebleu.metrics import BLEU
 
     print("Package imports: OK")
     print(f"PyTorch CUDA runtime: {torch.version.cuda}")

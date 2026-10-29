@@ -43,7 +43,7 @@
     "offspring_per_generation": "population_size",
     "parent_selection": "wheel",
     "zero_fitness_selection": "uniform",
-    "crossover_probability": 0.8,
+    "crossover_probability": 0.0,
     "mutation_probability": 0.8,
     "operator_order": [
       "crossover",
