@@ -1,0 +1,566 @@
+{
+  "baseline": "uniform_random_binary_class",
+  "label_mapping": {
+    "not depression": "not_depression",
+    "moderate": "depression",
+    "severe": "depression"
+  },
+  "purpose": "development_baseline_not_held_out_test",
+  "seed": 11,
+  "sampling": "Independent uniform choice per row, in source file order; no use of gold labels or post text for prediction.",
+  "label_probabilities": {
+    "not_depression": 0.5,
+    "depression": 0.5
+  },
+  "data_file": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/depsign/dev_100.tsv",
+  "data_sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70",
+  "n": 100,
+  "gold_counts": {
+    "not_depression": 41,
+    "depression": 59
+  },
+  "prediction_counts": {
+    "not_depression": 56,
+    "depression": 44
+  },
+  "macro_f1": 0.5095586027424682,
+  "per_class": {
+    "not_depression": {
+      "precision": 0.42857142857142855,
+      "recall": 0.5853658536585366,
+      "f1": 0.4948453608247423,
+      "support": 41
+    },
+    "depression": {
+      "precision": 0.6136363636363636,
+      "recall": 0.4576271186440678,
+      "f1": 0.5242718446601942,
+      "support": 59
+    }
+  },
+  "confusion_matrix": {
+    "rows": [
+      "not_depression",
+      "depression"
+    ],
+    "columns": [
+      "not_depression",
+      "depression",
+      "INVALID"
+    ],
+    "values": [
+      [
+        24,
+        17,
+        0
+      ],
+      [
+        32,
+        27,
+        0
+      ]
+    ]
+  },
+  "predictions": [
+    {
+      "PID": "dev_pid_3877",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1122",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_215",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3678",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1781",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2733",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_4059",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4109",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_869",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2118",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3067",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3052",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1695",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1547",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_459",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_588",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2116",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1726",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_719",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1189",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1187",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_401",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_435",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4478",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_4493",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_21",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2271",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4132",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1133",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1344",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3567",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3719",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2222",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_4097",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1844",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2681",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1802",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3132",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2655",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3151",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3245",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1877",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3814",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4197",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3832",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2627",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1223",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_654",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1507",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4271",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3120",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2423",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1796",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1969",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3247",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_241",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_894",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_197",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4376",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1440",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2895",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1612",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4016",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1852",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3433",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2293",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_4095",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1061",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_500",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3650",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1881",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2297",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1825",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_26",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3787",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1909",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3030",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_715",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3997",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2907",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2319",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3035",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4416",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_4445",
+      "gold": "depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1165",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2017",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3333",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3336",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2764",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3150",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1516",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2400",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_1838",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3584",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4398",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_711",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2427",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_3374",
+      "gold": "not_depression",
+      "prediction": "depression"
+    },
+    {
+      "PID": "dev_pid_2084",
+      "gold": "depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_953",
+      "gold": "depression",
+      "prediction": "depression"
+    }
+  ]
+}

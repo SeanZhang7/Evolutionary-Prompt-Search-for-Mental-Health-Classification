@@ -15,5 +15,5 @@ Your editing operation and exact output format:
 {{OUTPUT_CONTRACT}}
 
 Preserve the supplied label meanings. Do not add label criteria, examples, headings, or explanations.
-Every requested field must be a nonempty string containing ONLY the short edited instruction block.
+{{CHILD_FIELD_RULE}}
 Return only the specified JSON object, without Markdown fences or additional fields.

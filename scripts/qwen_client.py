@@ -30,8 +30,12 @@ def load_settings(config):
     temperature = parameters["temperature"]
     if type(temperature) not in (int, float) or not math.isfinite(temperature) or temperature <= 0:
         raise ValueError("Generation temperature must be a finite number greater than 0")
-    if parameters["chat_template_kwargs"] != {"enable_thinking": False}:
-        raise ValueError("Generation requires thinking disabled")
+    chat_kwargs = parameters["chat_template_kwargs"]
+    if (not isinstance(chat_kwargs, dict) or set(chat_kwargs) != {"enable_thinking"}
+            or type(chat_kwargs["enable_thinking"]) is not bool):
+        raise ValueError("Generation chat_template_kwargs must contain a boolean enable_thinking")
+    if type(parameters["max_tokens"]) is not int or parameters["max_tokens"] < 1:
+        raise ValueError("Generation max_tokens must be a positive integer (reasoning plus final output)")
     search = config["search"]
     if search["max_instruction_tokens"] != evaluator.MAX_INSTRUCTION_TOKENS:
         raise ValueError("Generator and evaluator instruction limits differ")

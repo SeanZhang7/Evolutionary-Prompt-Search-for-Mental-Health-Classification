@@ -20,7 +20,7 @@
     },
     "generation": {
       "decoding": "sampling",
-      "temperature": 0.8,
+      "temperature": 1.0,
       "top_p": 0.8,
       "top_k": 20,
       "max_tokens": 512,
@@ -43,7 +43,7 @@
     "offspring_per_generation": "population_size",
     "parent_selection": "wheel",
     "zero_fitness_selection": "uniform",
-    "crossover_probability": 0.0,
+    "crossover_probability": 0.5,
     "mutation_probability": 0.8,
     "operator_order": [
       "crossover",

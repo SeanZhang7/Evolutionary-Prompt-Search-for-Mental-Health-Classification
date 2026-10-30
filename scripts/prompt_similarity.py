@@ -89,6 +89,7 @@ class PromptSimilarityReport:
                 pairs.append({"parent_id": parent_id, "cosine": cosine, "bleu": score})
             children.append({
                 "child_id": item["id"], "generation": generation,
+                "generation_group": item.get("generation_group"), "sibling_index": item.get("sibling_index"),
                 "parent_ids": item["parent_ids"], "compared_parent_ids": parent_ids,
                 "operations": item["operations"], "status": item["status"],
                 "copied": not any(item["operations"].values()),

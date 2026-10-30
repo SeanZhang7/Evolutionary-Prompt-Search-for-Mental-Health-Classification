@@ -64,7 +64,7 @@ Per-class **A** means `(TP + TN) / n` with that class positive and all other out
 
 [depsign_task_v2.txt](prompts/depsign_task_v2.txt) keeps V1's definitions and adds three fixed labeled examples after the task definitions, before the instruction. Seed 11 samples one post per original class from `dev_v1/dev_clean.tsv`, excluding dev100 by both PID and outer-whitespace-stripped text. Examples are `dev_pid_3257` (not_depression), `dev_pid_1953` (moderate), and `dev_pid_4370` (severe). [Sampling metadata](prompts/depsign_task_v2.examples.json) records their source, IDs, seed, selection rule, and hashes. Samples are not redrawn during runs.
 
-The full examples exceed the default 2,048-token budget for some requests. Set `PROMPT_SEARCH_CONTEXT_TOKENS=4096` in **both terminals**. If your server is already running at 2,048, stop it in its terminal before restarting:
+The full examples exceed the default 2,048-token context for some requests. Use `PROMPT_SEARCH_CONTEXT_TOKENS=4096` in **both terminals** for GA. If your server has a smaller context, stop it in its terminal before restarting:
 
 ```bash
 # Server terminal
@@ -104,9 +104,10 @@ Binary runs retain the existing output files and locations, with `binary_` prefi
 
 ## GA search
 
-With the model server running, use the existing prompt file as the initial population:
+With the model server running at a 4,096-token context (see the commands above), use the existing prompt file as the initial population:
 
 ```bash
+export PROMPT_SEARCH_CONTEXT_TOKENS=4096
 python -B scripts/run_depsign_ga.py --generations 5 --prepare-only
 python -B scripts/run_depsign_ga.py --generations 5
 ```
@@ -133,7 +134,7 @@ Each generation proposes N children, evaluates eligible children, and selects th
 
 Set `search.deduplication` to `"exact_text"` (enabled) or `"none"` (disabled). When enabled, initial duplicate instructions are merged in file order; N is the remaining count and must be at least two. A child matching any earlier candidate in this run is discarded **before classification**, including copies and duplicates within the same generation. It consumes its proposal slot but triggers neither evaluation nor replacement generation. Select the best N from existing parents and the remaining children; parents ensure the population stays at N. Comparison strips outer whitespace but preserves case, punctuation, and internal whitespace. This moves deduplication earlier than [EvoPrompt's GA topk mode](https://github.com/beeevita/EvoPrompt/blob/main/evoluter.py#L393-L424), which evaluates children before deduplicating the union. With `"none"`, every child is evaluated separately. No previous run's scores are reused, and the supplied prompt file is not modified.
 
-`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (currently **0.9** and **0.8**). Each child draws both flags independently. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (currently **0.75**). It must be a finite number greater than zero. Classification remains fixed at temperature 0; other generation settings still follow the configured protocol. Edit the operation instructions in [crossover_and_mutation_prompt.json](prompts/crossover_and_mutation_prompt.json). The outer request template remains [ga_crossover_mutation_v1.txt](prompts/ga_crossover_mutation_v1.txt).
+`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (read from the config). Each child draws both flags independently. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (read from the config). It must be a finite number greater than zero. Classification remains fixed at temperature 0. Generation thinking and output budget are configured separately; other generation settings still follow the configured protocol. Edit the operation instructions in [crossover_and_mutation_prompt.json](prompts/crossover_and_mutation_prompt.json). The outer request template remains [ga_crossover_mutation_v1.txt](prompts/ga_crossover_mutation_v1.txt).
 
 The operator JSON contains a `prompts` list. Each entry has a unique `name`, optional `description`, and three instruction strings: `both`, `crossover_only`, and `mutation_only`. The supplied `baseline` preserves the original rendered instructions. Token-limit placeholders `{{MAX_CROSSOVER_TOKENS}}` and `{{MAX_INSTRUCTION_TOKENS}}` are filled by the program. Keep the existing output fields: both operations require `crossover` and `instruction`; crossover-only requires `crossover`; mutation-only requires `instruction`. Output parsing and length checks still apply.
 
@@ -155,7 +156,13 @@ Default GA runs use memory only during search: inputs and tokenizer checksums ar
 
 For N initial prompts after deduplication, M posts, and G evolution steps, `(G + 1) × N × M` is the classification-request upper bound. Early stopping can reduce this budget further. Each skipped duplicate or invalid child saves M classification requests; N=10, M=100, G=5 requires at most 6,000. Reports distinguish this budget from actual evaluations and completed requests. Generation requests depend on operation draws: before retries, the expected number is `G × N × [1 − (1 − p_cross)(1 − p_mutate)]`.
 
-Crossover and final instructions each have a 256-token ceiling; the full JSON output remains limited to 512 tokens, with context checks before inference. After three invalid generation outputs, discard that child slot without replacement and continue. Parents keep the population at N even if all children fail. Reports record skipped slots and per-generation counts; `complete` means the generation limit or early-stopping criterion was reached, not that every proposed child was valid. Transient request errors allow one retry, then stop; other service errors and classification request failures also stop the search. Structural validation does not establish semantic correctness or improved performance.
+Crossover and final instructions each have a 256-token ceiling. `model.generation.max_tokens` limits the whole generated response, including reasoning and final JSON, with context checks before inference. After three invalid generation outputs, discard that child slot without replacement and continue. Parents keep the population at N even if all children fail. Reports record skipped slots and per-generation counts; `complete` means the generation limit or early-stopping criterion was reached, not that every proposed child was valid. Transient request errors allow one retry, then stop; other service errors and classification request failures also stop the search. Structural validation does not establish semantic correctness or improved performance.
+
+## Optional thinking during offspring generation
+
+Thinking is currently disabled for both generation and classification. Generation uses `model.generation.max_tokens=512`; classification keeps temperature 0 and a 16-token output budget. Crossover and child instructions each retain their 256-token limit.
+
+To enable generation thinking later, set `model.generation.chat_template_kwargs.enable_thinking=true` and increase its `max_tokens` to cover reasoning plus final JSON. Recheck the full context budget and use the same context setting for server and client. Classification remains non-thinking. Only the final `content` JSON supplies child instructions; separate reasoning is never inserted into child prompts or classification inputs. Truncated or malformed responses retain the existing retry/skip rules; nonempty reasoning is rejected when thinking is disabled. Configuration edits apply to new runs, not searches already running.
 
 ## Prompt similarity
 

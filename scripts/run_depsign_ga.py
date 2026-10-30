@@ -76,10 +76,11 @@ def load_settings(config):
         if search.get(key) != expected:
             raise ValueError(f"Unsupported GA setting: {key}")
     expected = {**evaluator.PARAMETERS, "temperature": parameters["temperature"], "top_p": 0.8,
-                "top_k": 20, "max_tokens": 512}
+                "top_k": 20, "max_tokens": parameters["max_tokens"],
+                "chat_template_kwargs": parameters["chat_template_kwargs"]}
     expected.pop("seed")
     if parameters != expected:
-        raise ValueError("GA generation parameters other than temperature differ from the configured protocol")
+        raise ValueError("GA generation parameters other than temperature, max_tokens and thinking differ from the configured protocol")
     classification = dict(config["model"]["classification"])
     if classification.pop("decoding") != "greedy" or classification != evaluator.PARAMETERS:
         raise ValueError("Configured classifier differs from the shared evaluator")
@@ -203,7 +204,8 @@ def load_operator_prompts(data, name=None):
     elif name is not None and isinstance(prompts, dict) and prompts.get("name") != name:
         raise ValueError(f"Operator prompt file does not contain name {name!r}")
     required = {"name", "both", "crossover_only", "mutation_only"}
-    if not isinstance(prompts, dict) or not required <= prompts.keys() or prompts.keys() - required - {"description", "feedback"}:
+    optional = {"description", "feedback", "children_per_request", "generation_max_tokens"}
+    if not isinstance(prompts, dict) or not required <= prompts.keys() or prompts.keys() - required - optional:
         raise ValueError("Operator prompt file requires name, both, crossover_only, mutation_only; description is optional")
     if any(not isinstance(prompts[key], str) or not prompts[key].strip() for key in required):
         raise ValueError("Operator prompt fields must be nonempty strings")
@@ -211,6 +213,13 @@ def load_operator_prompts(data, name=None):
         raise ValueError("Operator prompt description must be a string")
     if prompts.get("feedback", "none") not in ("none", "parent_metrics"):
         raise ValueError("Operator feedback must be none or parent_metrics")
+    count = prompts.get("children_per_request", 1)
+    if type(count) is not int or count not in (1, 2):
+        raise ValueError("Operator children_per_request must be 1 or 2")
+    if "generation_max_tokens" in prompts:
+        budget = prompts["generation_max_tokens"]
+        if type(budget) is not int or budget < 1:
+            raise ValueError("Operator generation_max_tokens must be a positive integer")
     allowed = {"{{MAX_CROSSOVER_TOKENS}}", "{{MAX_INSTRUCTION_TOKENS}}"}
     for key in ("both", "crossover_only", "mutation_only"):
         markers = set(re.findall(r"\{\{.*?\}\}", prompts[key], re.DOTALL))
@@ -270,15 +279,20 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
     replacements = {"{{TASK_SPEC_JSON}}": json.dumps(sections[0].strip(), ensure_ascii=False),
                     "{{PARENTS_JSON}}": json.dumps(parent_input, ensure_ascii=False, separators=(",", ":") if operator_prompts.get("feedback") == "parent_metrics" else None),
                     "{{OPERATIONS_JSON}}": json.dumps(operations),
-                    "{{OUTPUT_CONTRACT}}": contract}
+                    "{{OUTPUT_CONTRACT}}": contract,
+                    "{{CHILD_FIELD_RULE}}": (
+                        "Within each child object, every requested instruction field must be a nonempty string containing ONLY the short edited instruction block."
+                        if operator_prompts.get("children_per_request", 1) == 2 else
+                        "Every requested field must be a nonempty string containing ONLY the short edited instruction block.")}
     if any(template.count(key) != 1 for key in replacements):
         raise ValueError("Unexpected GA template placeholders")
     # One substitution pass: placeholders inside supplied parent text are data.
-    prompt = re.sub(r"\{\{(?:TASK_SPEC_JSON|PARENTS_JSON|OPERATIONS_JSON|OUTPUT_CONTRACT)\}\}",
+    prompt = re.sub(r"\{\{(?:TASK_SPEC_JSON|PARENTS_JSON|OPERATIONS_JSON|OUTPUT_CONTRACT|CHILD_FIELD_RULE)\}\}",
                     lambda match: replacements[match.group()], template)
     messages = [{"role": "user", "content": prompt}]
     rendered = tokenizer.apply_chat_template(messages, tokenize=False,
-                                             add_generation_prompt=True, enable_thinking=False)
+                                             add_generation_prompt=True,
+                                             enable_thinking=parameters["chat_template_kwargs"]["enable_thinking"])
     tokens = len(tokenizer.encode(rendered, add_special_tokens=False))
     if tokens + parameters["max_tokens"] > evaluator.CONTEXT_TOKENS:
         raise ValueError(f"GA prompt plus output exceeds context budget: {tokens} + {parameters['max_tokens']} > {evaluator.CONTEXT_TOKENS}; "
@@ -311,7 +325,24 @@ class InvalidChildProposalsExhausted(RuntimeError):
     """Only invalid model outputs exhausted this slot; service errors are separate."""
 
 
-def generate_child(request, tokenizer, *, seed, slot, attempts, retries, record, generation=1, operations=None):
+def parse_offspring(content, tokenizer, operations, children_per_request):
+    """Validate a whole response atomically; never retain one half of an invalid pair."""
+    if children_per_request == 1:
+        return parse_child(content, tokenizer, operations)
+    if children_per_request != 2:
+        raise ValueError("Expected one or two children per request")
+    if not isinstance(content, str):
+        raise ValueError("Generation content must be text")
+    obj = json.loads(content, object_pairs_hook=pipeline.unique_object)
+    if (not isinstance(obj, dict) or set(obj) != {"children"}
+            or not isinstance(obj["children"], list) or len(obj["children"]) != 2):
+        raise ValueError("Expected exactly a children array containing two child objects")
+    return {"children": [parse_child(json.dumps(child, ensure_ascii=False), tokenizer, operations)
+                         for child in obj["children"]]}
+
+
+def generate_child(request, tokenizer, *, seed, slot, attempts, retries, record, generation=1, operations=None,
+                   children_per_request=1):
     operations = operations if operations is not None else {"crossover": True, "mutation": True}
     for attempt in range(1, attempts + 1):
         payload = {**request, "seed": request_seed(seed, slot, attempt, generation)}
@@ -334,9 +365,9 @@ def generate_child(request, tokenizer, *, seed, slot, attempts, retries, record,
             try:
                 if event["finish_reason"] != "stop":
                     raise ValueError(f"Expected finish_reason=stop; got {event['finish_reason']!r}")
-                if event["reasoning"]:
+                if event["reasoning"] and not request["chat_template_kwargs"]["enable_thinking"]:
                     raise ValueError("Nonempty reasoning despite thinking disabled")
-                child = parse_child(event["raw_output"], tokenizer, operations)
+                child = parse_offspring(event["raw_output"], tokenizer, operations, children_per_request)
                 event.update(outcome="accepted", **child)
             except ValueError as exc:
                 event.update(outcome="invalid", rejection_reason=str(exc))
@@ -408,6 +439,13 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         summary["requested_generations"] = generations
         summary["rules"]["generations_after_initialization"] = generations
         parameters, attempts, retries = load_settings(config)
+        children_per_request = operator_prompts.get("children_per_request", 1)
+        if "generation_max_tokens" in operator_prompts:
+            parameters = {**parameters, "max_tokens": operator_prompts["generation_max_tokens"]}
+        summary.update(children_per_request=children_per_request, invalid_generation_groups=0)
+        if children_per_request == 2:
+            summary["rules"].update(offspring_per_generation="2 * population_size",
+                                    candidate_evaluation_budget="(2 * generations_after_initialization + 1) * population_size")
         selection_mode = normalize_parent_selection(
             config["search"]["parent_selection"] if parent_selection is None else parent_selection)
         summary["rules"]["parent_selection"] = selection_mode
@@ -431,8 +469,9 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             raise ValueError("GA requires at least two initial prompts after applying deduplication")
         print(f"Initial population: {n}; deduplication={deduplication}; "
               f"initial duplicates removed={summary['initial_duplicates_removed']}", flush=True)
-        summary.update(population_size=n, offspring_count=generations * n, offspring_per_generation=n,
-                       candidate_evaluation_budget=(generations + 1) * n,
+        summary.update(population_size=n, offspring_count=generations * n * children_per_request,
+                       offspring_per_generation=n * children_per_request, generation_groups_per_generation=n,
+                       candidate_evaluation_budget=(generations * children_per_request + 1) * n,
                        budget_interpretation="upper_bound_before_duplicate_skips",
                        deduplication_stage="before_classification",
                        deduplication_scope="all_prior_candidates_in_this_run",
@@ -552,7 +591,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         parents = list(summary["population"])
         seen_instructions = {p["instruction"]: p["id"] for p in parents}
         summary.update(samples_per_prompt=common_inputs["sample_count"],
-                       planned_classification_requests=(generations + 1) * n * common_inputs["sample_count"],
+                       planned_classification_requests=summary["candidate_evaluation_budget"] * common_inputs["sample_count"],
                        evaluation_inputs=common_inputs)
         # Validate the operator before any HTTP; actual selected pairs are checked again below.
         if crossover_probability > 0 or mutation_probability > 0:
@@ -571,11 +610,13 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             summary["retained_populations"].append({"generation": 0, "ids": [p["id"] for p in parents]})
 
             def record(event):
+                event.update(generation_group=f"g{event['generation']:03d}_group_{event['slot']:03d}",
+                             children_per_request=children_per_request)
                 if save_details:
                     with (output / "generation_attempts.jsonl").open("a", encoding="utf-8") as stream:
                         stream.write(json.dumps(event, ensure_ascii=False) + "\n")
                 if event["outcome"] == "copied":
-                    summary["copied_offspring"] += 1
+                    summary["copied_offspring"] += event.get("offspring_count", 1)
                 else:
                     summary["generation_requests"] += 1
                     summary["proposal_attempts"] += event["transport_retry"] == 0
@@ -587,7 +628,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                         "generation", "slot", "proposal_attempt", "transport_retry", "operations", "outcome",
                         "rejection_reason", "request_error", "finish_reason", "reasoning", "raw_output", "usage")}
                 reason = event.get("rejection_reason") or event.get("request_error")
-                print(f"G{event['generation']} child {event['slot']}, attempt {event['proposal_attempt']}, "
+                unit = "group" if children_per_request == 2 else "child"
+                print(f"G{event['generation']} {unit} {event['slot']}, attempt {event['proposal_attempt']}, "
                       f"retry {event['transport_retry']}: {event['outcome']}" + (f" — {reason}" if reason else ""), flush=True)
 
             for generation in range(1, generations + 1):
@@ -603,8 +645,11 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                 skipped_this_generation = 0
                 invalid_this_generation = 0
                 for slot, (parent_ids, operations) in enumerate(zip(selection["parent_ids"], operators["choices"]), start=1):
-                    identifier = f"child_{slot:03d}" if generation == 1 else f"g{generation:03d}_child_{slot:03d}"
-                    summary["stage"] = f"generation:{identifier}"
+                    prefix = "" if generation == 1 else f"g{generation:03d}_"
+                    identifiers = [f"{prefix}child_{(slot - 1) * children_per_request + index:03d}"
+                                   for index in range(1, children_per_request + 1)]
+                    group_id = f"g{generation:03d}_group_{slot:03d}"
+                    summary["stage"] = f"generation:{group_id if children_per_request == 2 else identifiers[0]}"
                     check_sources()
                     chosen = [parent_lookup[i] for i in parent_ids]
                     if any(operations.values()):
@@ -612,39 +657,50 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                         request, tokens = build_request(task, template, chosen, parameters, tokenizer, operations, operator_prompts=operator_prompts)
                         try:
                             child = generate_child(request, tokenizer, seed=seed, slot=slot, generation=generation,
-                                                   attempts=attempts, retries=retries, record=record, operations=operations)
+                                                   attempts=attempts, retries=retries, record=record, operations=operations,
+                                                   children_per_request=children_per_request)
                         except InvalidChildProposalsExhausted as exc:
-                            summary["invalid_offspring_skipped"] += 1
-                            invalid_this_generation += 1
-                            summary["skipped_generation_slots"].append({
-                                "generation": generation, "slot": slot, "id": identifier,
-                                "parent_ids": parent_ids, "operations": operations,
-                                "proposal_attempts": attempts, "reason": str(exc)})
-                            print(f"G{generation} child {slot}: skipped after {attempts} invalid proposals; "
+                            summary["invalid_offspring_skipped"] += children_per_request
+                            summary["invalid_generation_groups"] += 1
+                            invalid_this_generation += children_per_request
+                            for index, identifier in enumerate(identifiers, start=1):
+                                summary["skipped_generation_slots"].append({
+                                    "generation": generation, "slot": slot, "id": identifier,
+                                    "generation_group": group_id, "sibling_index": index,
+                                    "parent_ids": parent_ids, "operations": operations,
+                                    "proposal_attempts": attempts, "reason": str(exc)})
+                            print(f"G{generation} group {slot}: skipped {children_per_request} child slot(s) "
+                                  f"after {attempts} invalid proposals; "
                                   "continuing search", flush=True)
                             continue
+                        proposals = ([child] if children_per_request == 1 else
+                                     [{**entry, "seed": child["seed"], "proposal_attempt": child["proposal_attempt"]}
+                                      for entry in child["children"]])
                         provenance = "qwen_ga_offspring"
                     else:
                         instruction, instruction_tokens = evaluator.validate_instruction(chosen[0]["instruction"], tokenizer)
                         child = {"instruction": instruction, "instruction_tokens": instruction_tokens,
                                  "crossover": None, "crossover_tokens": 0, "seed": None, "proposal_attempt": 0}
+                        proposals = [dict(child) for _ in range(children_per_request)]
                         tokens, provenance = 0, "ga_copy_first_parent"
                         record({"generation": generation, "slot": slot, "operations": operations,
-                                "proposal_attempt": 0, "transport_retry": 0, "outcome": "copied", "request": None})
-                    item = individual(identifier, child.pop("instruction"), len(summary["population"]),
-                                      parent_ids=parent_ids, provenance=provenance, generation=generation,
-                                      operations=operations, rendered_prompt_tokens=tokens, **child)
-                    summary["population"].append(item)
-                    if deduplication == "exact_text" and item["instruction"] in seen_instructions:
-                        item.update(status="skipped_duplicate", duplicate_of=seen_instructions[item["instruction"]])
-                        summary["duplicate_offspring_skipped"] += 1
-                        skipped_this_generation += 1
-                        print(f"G{generation} child {slot}: duplicate of {item['duplicate_of']}; "
-                              "skipped classification", flush=True)
-                        continue
-                    seen_instructions[item["instruction"]] = item["id"]
-                    children.append(item)
-                    prepare(item)
+                                "proposal_attempt": 0, "transport_retry": 0, "outcome": "copied", "request": None,
+                                "offspring_count": children_per_request})
+                    for index, (identifier, child) in enumerate(zip(identifiers, proposals), start=1):
+                        item = individual(identifier, child.pop("instruction"), len(summary["population"]),
+                                          parent_ids=parent_ids, provenance=provenance, generation=generation,
+                                          generation_group=group_id, sibling_index=index,
+                                          operations=operations, rendered_prompt_tokens=tokens, **child)
+                        summary["population"].append(item)
+                        if deduplication == "exact_text" and item["instruction"] in seen_instructions:
+                            item.update(status="skipped_duplicate", duplicate_of=seen_instructions[item["instruction"]])
+                            summary["duplicate_offspring_skipped"] += 1
+                            skipped_this_generation += 1
+                            print(f"{identifier}: duplicate of {item['duplicate_of']}; skipped classification", flush=True)
+                            continue
+                        seen_instructions[item["instruction"]] = item["id"]
+                        children.append(item)
+                        prepare(item)
                 for item in children:
                     evaluate(item)
                 check_sources()

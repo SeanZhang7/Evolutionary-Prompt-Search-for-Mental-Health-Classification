@@ -1,0 +1,580 @@
+{
+  "baseline": "uniform_random_three_class",
+  "purpose": "development_baseline_not_held_out_test",
+  "seed": 11,
+  "sampling": "Independent uniform choice per row, in source file order; no use of gold labels or post text for prediction.",
+  "label_probabilities": {
+    "not_depression": 0.3333333333333333,
+    "moderate": 0.3333333333333333,
+    "severe": 0.3333333333333333
+  },
+  "data_file": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/depsign/dev_100.tsv",
+  "data_sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70",
+  "n": 100,
+  "gold_counts": {
+    "not_depression": 41,
+    "moderate": 51,
+    "severe": 8
+  },
+  "prediction_counts": {
+    "not_depression": 38,
+    "moderate": 31,
+    "severe": 31
+  },
+  "macro_f1": 0.29146908801123067,
+  "per_class": {
+    "not_depression": {
+      "precision": 0.4473684210526316,
+      "recall": 0.4146341463414634,
+      "f1": 0.43037974683544306,
+      "support": 41
+    },
+    "moderate": {
+      "precision": 0.45161290322580644,
+      "recall": 0.27450980392156865,
+      "f1": 0.34146341463414637,
+      "support": 51
+    },
+    "severe": {
+      "precision": 0.06451612903225806,
+      "recall": 0.25,
+      "f1": 0.10256410256410256,
+      "support": 8
+    }
+  },
+  "confusion_matrix": {
+    "rows": [
+      "not_depression",
+      "moderate",
+      "severe"
+    ],
+    "columns": [
+      "not_depression",
+      "moderate",
+      "severe",
+      "INVALID"
+    ],
+    "values": [
+      [
+        17,
+        12,
+        12,
+        0
+      ],
+      [
+        20,
+        14,
+        17,
+        0
+      ],
+      [
+        1,
+        5,
+        2,
+        0
+      ]
+    ]
+  },
+  "predictions": [
+    {
+      "PID": "dev_pid_3877",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1122",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_215",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3678",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1781",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_2733",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4059",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4109",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_869",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_2118",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3067",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3052",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1695",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1547",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_459",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_588",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_2116",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1726",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_719",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1189",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1187",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_401",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_435",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4478",
+      "gold": "severe",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4493",
+      "gold": "severe",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_21",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_2271",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4132",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1133",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1344",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3567",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3719",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2222",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4097",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1844",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2681",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1802",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3132",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2655",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3151",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3245",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1877",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3814",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4197",
+      "gold": "severe",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3832",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2627",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1223",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_654",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1507",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4271",
+      "gold": "severe",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3120",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2423",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1796",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1969",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3247",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_241",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_894",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_197",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4376",
+      "gold": "severe",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1440",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_2895",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1612",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4016",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1852",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3433",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_2293",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_4095",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1061",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_500",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3650",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1881",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2297",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1825",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_26",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3787",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_1909",
+      "gold": "moderate",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3030",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_715",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3997",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2907",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2319",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3035",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4416",
+      "gold": "severe",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_4445",
+      "gold": "severe",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1165",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_2017",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3333",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_3336",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_2764",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3150",
+      "gold": "not_depression",
+      "prediction": "severe"
+    },
+    {
+      "PID": "dev_pid_1516",
+      "gold": "moderate",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_2400",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_1838",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_3584",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_4398",
+      "gold": "severe",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_711",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2427",
+      "gold": "not_depression",
+      "prediction": "moderate"
+    },
+    {
+      "PID": "dev_pid_3374",
+      "gold": "not_depression",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_2084",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    },
+    {
+      "PID": "dev_pid_953",
+      "gold": "moderate",
+      "prediction": "not_depression"
+    }
+  ]
+}
