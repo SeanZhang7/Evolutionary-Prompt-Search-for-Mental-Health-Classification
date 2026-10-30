@@ -397,7 +397,7 @@ def generation_metrics(generation, population):
 def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                      seed=11, generations=None, prepare_only=False, save_details=True, label_mode="three_class",
                      parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
-                     task_template_file=None):
+                     task_template_file=None, no_early_stopping=False):
     """Shared search loop; compact mode performs no intermediate file writes."""
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -405,6 +405,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                "population": [], "results": [], "generation_metrics": [], "candidate_evaluations": 0,
                "requested_generations": generations, "completed_generations": 0,
                "stopped_early": False, "stop_reason": None, "unchanged_mean_generations": 0,
+               "early_stopping_enabled": not no_early_stopping,
                "selections": [], "retained_populations": [],
                "generation_requests": 0, "proposal_attempts": 0, "transport_retries": 0,
                "copied_offspring": 0,
@@ -454,6 +455,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         print(f"Parent selection: {selection_mode}", flush=True)
         patience = config["search"]["early_stopping_patience"]
         summary["rules"]["early_stopping_patience"] = patience
+        if no_early_stopping:
+            print("Early stopping: disabled for this run", flush=True)
         crossover_probability = config["search"]["crossover_probability"]
         mutation_probability = config["search"]["mutation_probability"]
         deduplication = config["search"]["deduplication"]
@@ -722,7 +725,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                 summary["retained_populations"].append({"generation": generation, "ids": [p["id"] for p in parents]})
                 summary["completed_generations"] = generation
                 summary["stage"] = f"completed_generation:{generation}"
-                if summary["unchanged_mean_generations"] >= patience and generation < generations:
+                if not no_early_stopping and summary["unchanged_mean_generations"] >= patience and generation < generations:
                     summary.update(stopped_early=True, stop_reason="mean_macro_f1_unchanged")
                     print(f"Early stopping at G{generation}: retained-population mean macro-F1 "
                           f"unchanged for {patience} consecutive generations", flush=True)
@@ -763,7 +766,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
 def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
            seed=11, generations=None, prepare_only=False, save_details=False, label_mode="three_class",
            parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
-           task_template_file=None):
+           task_template_file=None, no_early_stopping=False):
     """Write the compact report once on exit; default search uses memory only."""
     if generations is not None:
         validate_generations(generations)
@@ -775,7 +778,8 @@ def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
     arguments = dict(prompts_file=prompts_file, data_file=data_file, seed=seed, generations=generations,
                      prepare_only=prepare_only, save_details=save_details, label_mode=label_mode,
                      parent_selection=parent_selection, operator_prompt_file=operator_prompt_file,
-                     operator_prompt_name=operator_prompt_name, task_template_file=task_template_file)
+                     operator_prompt_name=operator_prompt_name, task_template_file=task_template_file,
+                     no_early_stopping=no_early_stopping)
     result = _run_search(output, **arguments)
     report(result)
     if result["status"] != "prepared":
@@ -799,6 +803,8 @@ def main(argv=None):
                         help="Override search.parent_selection in the config (default: wheel)")
     parser.add_argument("--generations", type=positive_integer,
                         help="Positive number of evolution steps after G0; defaults to search.generations_after_initialization")
+    parser.add_argument("--no-early-stopping", action="store_true",
+                        help="Disable plateau early stopping for this run; errors and interrupts still stop the search")
     parser.add_argument("--output-dir", type=Path, help="New directory; existing output is never overwritten")
     parser.add_argument("--prepare-only", action="store_true", help="Validate inputs and requests without HTTP calls")
     parser.add_argument("--save-details", action="store_true", help="Also keep snapshots, raw responses and all individual evaluations")
@@ -811,7 +817,7 @@ def main(argv=None):
                     seed=args.seed, generations=args.generations, prepare_only=args.prepare_only,
                     save_details=args.save_details, label_mode=args.label_mode, parent_selection=args.parent_selection,
                     operator_prompt_file=args.operator_prompt_file, operator_prompt_name=args.operator_prompt_name,
-                    task_template_file=args.task_template_file)
+                    task_template_file=args.task_template_file, no_early_stopping=args.no_early_stopping)
     if result["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

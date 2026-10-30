@@ -57,6 +57,7 @@ class CompactReport:
             "stopped_early": summary.get("stopped_early", False),
             "stop_reason": summary.get("stop_reason"),
             "early_stopping_patience": summary["rules"].get("early_stopping_patience"),
+            "early_stopping_enabled": summary.get("early_stopping_enabled", True),
             "parent_selection": summary["rules"].get("parent_selection"),
             "tournament_size": summary["rules"].get("tournament_size"),
             "tournament_tie_break": summary["rules"].get("tournament_tie_break"),
