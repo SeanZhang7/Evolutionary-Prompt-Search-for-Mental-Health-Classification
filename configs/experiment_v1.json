@@ -31,6 +31,15 @@
       "chat_template_kwargs": {
         "enable_thinking": false
       }
+    },
+    "critique": {
+      "temperature": 0.3,
+      "top_p": 0.8,
+      "top_k": 20,
+      "max_tokens": 768,
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      }
     }
   },
   "evaluation": {
@@ -43,7 +52,7 @@
     "offspring_per_generation": "population_size",
     "parent_selection": "wheel",
     "zero_fitness_selection": "uniform",
-    "crossover_probability": 0.1,
+    "crossover_probability": 0.0,
     "mutation_probability": 0.8,
     "operator_order": [
       "crossover",

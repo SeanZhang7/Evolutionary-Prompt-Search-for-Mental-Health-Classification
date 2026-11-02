@@ -27,7 +27,7 @@ Keep it running. In a second terminal, evaluate every instruction in the prompt 
 ```bash
 conda activate prompt-search
 python -B scripts/run_depsign_pipeline_smoke.py \
-  --prompts-file prompts/humanPrompt.json \
+  --prompts-file prompts/depsign/humanPrompt.json \
   --data-file data/processed/depsign/dev_100.tsv
 ```
 
@@ -62,7 +62,7 @@ Per-class **A** means `(TP + TN) / n` with that class positive and all other out
 
 ## Three-class few-shot V2
 
-[depsign_task_v2.txt](prompts/depsign_task_v2.txt) keeps V1's definitions and adds three fixed labeled examples after the task definitions, before the instruction. Seed 11 samples one post per original class from `dev_v1/dev_clean.tsv`, excluding dev100 by both PID and outer-whitespace-stripped text. Examples are `dev_pid_3257` (not_depression), `dev_pid_1953` (moderate), and `dev_pid_4370` (severe). [Sampling metadata](prompts/depsign_task_v2.examples.json) records their source, IDs, seed, selection rule, and hashes. Samples are not redrawn during runs.
+[depsign_task_v2.txt](prompts/depsign/depsign_task_v2.txt) keeps V1's definitions and adds three fixed labeled examples after the task definitions, before the instruction. Seed 11 samples one post per original class from `dev_v1/dev_clean.tsv`, excluding dev100 by both PID and outer-whitespace-stripped text. Examples are `dev_pid_3257` (not_depression), `dev_pid_1953` (moderate), and `dev_pid_4370` (severe). [Sampling metadata](prompts/depsign/depsign_task_v2.examples.json) records their source, IDs, seed, selection rule, and hashes. Samples are not redrawn during runs.
 
 The full examples exceed the default 2,048-token context for some requests. Use `PROMPT_SEARCH_CONTEXT_TOKENS=4096` in **both terminals** for GA. If your server has a smaller context, stop it in its terminal before restarting:
 
@@ -73,11 +73,11 @@ PROMPT_SEARCH_CONTEXT_TOKENS=4096 ./start_vllm.sh
 # Client terminal (prompt-search environment)
 export PROMPT_SEARCH_CONTEXT_TOKENS=4096
 python -B scripts/run_depsign_ga.py --label-mode three_class \
-  --task-template-file prompts/depsign_task_v2.txt --generations 20 --prepare-only
+  --task-template-file prompts/depsign/depsign_task_v2.txt --generations 20 --prepare-only
 # Remove --prepare-only to run the search.
 
 python -B scripts/evaluate_depsign_prompt.py --label-mode three_class \
-  --task-template-file prompts/depsign_task_v2.txt \
+  --task-template-file prompts/depsign/depsign_task_v2.txt \
   --prompt-file prompts/BestPrompts/best_prompt.txt
 ```
 
@@ -85,7 +85,7 @@ Both runners default to dev100 and record the selected template and context limi
 
 ## Binary DepSign
 
-Add `--label-mode binary` to GA, fixed-file evaluation, or single-prompt evaluation. Binary mode uses `prompts/depsign_task_Bi.txt`; GA and fixed-file evaluation default to `prompts/humanPrompt_Bi.json`. All three runners use the existing `dev_100.tsv` by default in this mode.
+Add `--label-mode binary` to GA, fixed-file evaluation, or single-prompt evaluation. Binary mode uses `prompts/depsign/depsign_task_Bi.txt`; GA and fixed-file evaluation default to `prompts/depsign/humanPrompt_Bi.json`. All three runners use the existing `dev_100.tsv` by default in this mode.
 
 ```bash
 python -B scripts/run_depsign_ga.py --label-mode binary --generations 20 --prepare-only
@@ -112,7 +112,7 @@ python -B scripts/run_depsign_ga.py --generations 5 --prepare-only
 python -B scripts/run_depsign_ga.py --generations 5
 ```
 
-Defaults: `prompts/humanPrompt.json`, `data/processed/depsign/dev_100.tsv`, and seed 11. `--generations G` accepts a positive integer and overrides `search.generations_after_initialization` in `configs/experiment_v1.json` (currently 1). G is the maximum number of evolution steps after G0. Other options are `--prompts-file`, `--data-file`, `--seed`, and `--output-dir`. Preparation makes no HTTP requests; it checks all initial classification requests and a sample parent pair. Actual selected pairs are checked before generation. Each command creates a separate run; there is no resume support.
+Defaults: `prompts/depsign/humanPrompt.json`, `data/processed/depsign/dev_100.tsv`, and seed 11. `--generations G` accepts a positive integer and overrides `search.generations_after_initialization` in `configs/experiment_v1.json` (currently 1). G is the maximum number of evolution steps after G0. Other options are `--prompts-file`, `--data-file`, `--seed`, and `--output-dir`. Preparation makes no HTTP requests; it checks all initial classification requests and a sample parent pair. Actual selected pairs are checked before generation. Each command creates a separate run; there is no resume support.
 
 Early stopping uses `search.early_stopping_patience` (default 5). After each completed generation, compare retained-population mean macro-F1 with the previous generation, starting with G0. Five consecutive unchanged comparisons stop the search; any change resets the counter. Use full-precision scores with an absolute tolerance of 1e-12 for floating-point noise, not the four-decimal plot labels. Early stopping is successful completion: the final report records `stopped_early`, `stop_reason`, requested and completed generations, and the last unchanged-generation count. It still saves the best prompt, the fitness curve, and similarity analysis for completed generations. Failed or partially evaluated generations do not count.
 
@@ -136,7 +136,7 @@ Each generation uses N parent-pair proposal groups. Ordinary operators propose o
 
 Set `search.deduplication` to `"exact_text"` (enabled) or `"none"` (disabled). When enabled, initial duplicate instructions are merged in file order; N is the remaining count and must be at least two. A child matching any earlier candidate in this run is discarded **before classification**, including copies and duplicates within the same generation. It consumes its proposal slot but triggers neither evaluation nor replacement generation. Select the best N from existing parents and the remaining children; parents ensure the population stays at N. Comparison strips outer whitespace but preserves case, punctuation, and internal whitespace. This moves deduplication earlier than [EvoPrompt's GA topk mode](https://github.com/beeevita/EvoPrompt/blob/main/evoluter.py#L393-L424), which evaluates children before deduplicating the union. With `"none"`, every child is evaluated separately. No previous run's scores are reused, and the supplied prompt file is not modified.
 
-`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (read from the config). Each proposal group draws both flags independently; v4 siblings share the same flags and selected parents. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (read from the config). It must be a finite number greater than zero. Classification remains fixed at temperature 0. Generation thinking and output budget are configured separately; other generation settings still follow the configured protocol. Edit the operation instructions in [crossover_and_mutation_prompt.json](prompts/crossover_and_mutation_prompt.json). The outer request template remains [ga_crossover_mutation_v1.txt](prompts/ga_crossover_mutation_v1.txt).
+`search.crossover_probability` and `search.mutation_probability` control the two operation probabilities (read from the config). Each proposal group draws both flags independently; v4 siblings share the same flags and selected parents. Both enabled: cross then mutate in one Qwen request; crossover only: use its result unchanged; mutation only: mutate the first parent; neither: copy the first parent without a generation request. Single-operation requests return only the relevant field; the program copies crossover-only results into the final instruction. Generation sees reference definitions rather than the full classifier template. Retry attempts keep the same parents and flags. Selection, operation draws, and generation requests use reproducible seeds that include the generation index. Set the generation temperature only in `model.generation.temperature` (read from the config). It must be a finite number greater than zero. Classification remains fixed at temperature 0. Generation thinking and output budget are configured separately; other generation settings still follow the configured protocol. Edit the operation instructions in [crossover_and_mutation_prompt.json](prompts/depsign/crossover_and_mutation_prompt.json). The outer request template remains [ga_crossover_mutation_v1.txt](prompts/depsign/ga_crossover_mutation_v1.txt).
 
 The operator JSON contains a `prompts` list. Each entry has a unique `name`, optional `description`, and three instruction strings: `both`, `crossover_only`, and `mutation_only`. The supplied `baseline` preserves the original rendered instructions. Token-limit placeholders `{{MAX_CROSSOVER_TOKENS}}` and `{{MAX_INSTRUCTION_TOKENS}}` are filled by the program. Keep the existing output fields: both operations require `crossover` and `instruction`; crossover-only requires `crossover`; mutation-only requires `instruction`. Output parsing and length checks still apply.
 
@@ -162,7 +162,7 @@ Crossover and final instructions each have a 256-token ceiling. `model.generatio
 
 ## V4: two children per generation request
 
-Select `--operator-prompt-name v4` to produce two children per parent-pair group in one Qwen request. V4 receives parent macro-F1 and confusion matrices. Child A makes targeted corrections while preserving useful guidance; child B explores a different evidence organization, decision sequence, or instruction structure. This is prompt-based encouragement, not a verified semantic-distance constraint. Exact duplicate children still skip classification under the configured deduplication rule.
+Select `--operator-prompt-name v4` to produce two children per parent-pair group in one Qwen request. V4 uses parent instructions and task definitions, with `feedback: "none"`; no parent F1, confusion matrices or critiques are supplied. Child A improves clarity and precision while preserving the main guidance; child B explores a different evidence organization, decision sequence, or instruction structure. This is prompt-based encouragement, not a verified semantic-distance constraint. Exact duplicate children still skip classification under the configured deduplication rule.
 
 With the current 10-prompt population, each generation has 10 groups and up to 20 child evaluations on dev100. Select the best 10 from the 10 retained parents plus eligible children, with the existing creation-order tie break. Both siblings may survive. Population size still comes from the initial prompt file after deduplication. A zero crossover probability still disables crossover; when both operations are off, make two copies of the first parent without a Qwen request, then apply normal deduplication.
 
@@ -176,11 +176,27 @@ PROMPT_SEARCH_CONTEXT_TOKENS=8192 ./start_vllm.sh
 
 # Client terminal: remove --prepare-only to run the search.
 PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_depsign_ga.py \
-  --label-mode three_class --task-template-file prompts/depsign_task_v2.txt \
+  --label-mode three_class --task-template-file prompts/depsign/depsign_task_v2.txt \
   --generations 20 --parent-selection tour --operator-prompt-name v4 --prepare-only
 ```
 
 Existing result files record the effective group/child budgets and skipped counts. Children have independent IDs, scores, shared parent links, a generation-group ID and sibling index. Similarity analysis weights each child equally, including skipped duplicates and copies. No extra default result files or model-based diversity checks are added. For 10 parents and 100 posts, each v4 generation can require up to 2,000 child classification requests, compared with 1,000 for single-child operators; compare search methods with this budget difference in mind.
+
+## Critique-guided offspring (v5)
+
+Select `--operator-prompt-name v5` to critique each participating parent before generating two children per group. The same Qwen service handles separate critique and offspring requests. The critic receives the parent instruction, confusion matrix and label definitions; the generator receives the instruction and critique, without the raw matrix. Mutation-only uses the first parent; copy-only groups make neither request. Selection still retains the best N individuals.
+
+Edit [parent_critique_prompt.json](prompts/depsign/parent_critique_prompt.json) for criticism and the `v5` entry in [crossover_and_mutation_prompt.json](prompts/depsign/crossover_and_mutation_prompt.json) for offspring generation. `model.critique` in the experiment config defaults to temperature 0.3, top_p 0.8, top_k 20, 768 output tokens and thinking off. V5 offspring have a separate 1536-token budget and the existing instruction limits. Aggregate errors suggest hypotheses, not proven causes or guaranteed improvements.
+
+```bash
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_depsign_ga.py \
+  --label-mode three_class --task-template-file prompts/depsign/depsign_task_v2.txt \
+  --generations 20 --parent-selection tour --operator-prompt-name v5 --prepare-only
+```
+
+Remove `--prepare-only` to search, with the server configured for the same context limit. Preparation makes no model requests; complete critique and offspring requests are checked again at runtime. Critiques are cached only within the run for the same parent ID, instruction and measured matrix. Invalid critiques receive up to three attempts; transient request errors get one retry with the same payload. Exhausted criticism stops the run as incomplete without falling back to another operator. Child-generation failures retain the existing retry/skip policy.
+
+The final `performance.json` includes parent-linked critiques, their configuration, seeds, request counts and reported token usage. No additional default files are written. Criticism adds inference cost beyond v4; report it separately when comparing methods. Classifiers receive only the final child instruction, never its critique. Earlier operator versions do not call the critic.
 
 ## Optional thinking during offspring generation
 
@@ -204,7 +220,7 @@ python -m pip install scikit-learn==1.9.1 sacrebleu==2.6.0
 
 ## Prompts and data
 
-Edit [prompts/humanPrompt.json](prompts/humanPrompt.json): each entry in `prompts` has a unique `id` and an `instruction`. The file can contain human-written and model-generated instructions; record their actual provenance. Shared label definitions and output requirements are in [prompts/depsign_task_v1.txt](prompts/depsign_task_v1.txt).
+Edit [prompts/depsign/humanPrompt.json](prompts/depsign/humanPrompt.json): each entry in `prompts` has a unique `id` and an `instruction`. The file can contain human-written and model-generated instructions; record their actual provenance. Shared label definitions and output requirements are in [prompts/depsign/depsign_task_v1.txt](prompts/depsign/depsign_task_v1.txt).
 
 Each prompt evaluates the same posts in the same order. Classification uses temperature 0, seed 0, and thinking disabled. Posts longer than 1,500 tokenizer tokens are truncated; all records remain in the evaluation.
 

@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN_DEV = Path("data/processed/depsign/dev_v1/dev_clean.tsv")
 DEV_PURPOSE = "development_evaluation_not_held_out_test"
-TASK_TEMPLATE_PATH = ROOT / "prompts/depsign_task_v1.txt"
+TASK_TEMPLATE_PATH = ROOT / "prompts/depsign/depsign_task_v1.txt"
 LABEL_MAP = {"not depression": "not_depression", "moderate": "moderate", "severe": "severe"}
 LABELS = list(LABEL_MAP.values())
 LABEL_MODES = ("three_class", "binary")
@@ -33,10 +33,10 @@ def task_spec(label_mode="three_class", *, task_template_file=None):
         raise ValueError(f"Unknown label mode: {label_mode}")
     mapping = (dict(LABEL_MAP) if label_mode == "three_class" else
                {"not depression": "not_depression", "moderate": "depression", "severe": "depression"})
-    template_path = (TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign_task_Bi.txt")
+    template_path = (TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign/depsign_task_Bi.txt")
     if task_template_file is not None:
         template_path = Path(task_template_file).resolve()
-    if label_mode != "three_class" and template_path == (ROOT / "prompts/depsign_task_v2.txt").resolve():
+    if label_mode != "three_class" and template_path == (ROOT / "prompts/depsign/depsign_task_v2.txt").resolve():
         raise ValueError("depsign_task_v2.txt requires --label-mode three_class")
     return {"label_mode": label_mode, "label_mapping": mapping,
             "labels": list(dict.fromkeys(mapping.values())),

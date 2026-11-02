@@ -40,6 +40,7 @@ class CompactReport:
             "context_tokens": summary.get("context_tokens"),
             "operator_prompt": summary.get("operator_prompt"),
             "operator_feedback": summary.get("operator_feedback", "none"),
+            "critique": summary.get("critique"),
             "feedback_preparation": summary.get("feedback_preparation"),
             "generation_parameters": summary.get("generation_parameters"),
             "classification_parameters": summary.get("classification_parameters"),

@@ -18,10 +18,10 @@ else:
     import depsign_evaluator as classifier
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PROMPTS = ROOT / "prompts/humanPrompt.json"
+DEFAULT_PROMPTS = ROOT / "prompts/depsign/humanPrompt.json"
 def default_prompts(label_mode="three_class"):
     classifier.task_spec(label_mode)
-    return ROOT / "prompts/humanPrompt_Bi.json" if label_mode == "binary" else DEFAULT_PROMPTS
+    return ROOT / "prompts/depsign/humanPrompt_Bi.json" if label_mode == "binary" else DEFAULT_PROMPTS
 
 
 PURPOSE = "fixed_prompts_development_evaluation_not_held_out_test"

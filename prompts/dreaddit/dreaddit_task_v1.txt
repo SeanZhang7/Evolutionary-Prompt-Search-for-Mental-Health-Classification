@@ -1,0 +1,14 @@
+Task
+Given a Reddit text segment, classify whether the author expresses psychological stress accompanied by negative feelings.
+label definitions:
+1 — Stress: The segment conveys the author’s mental or emotional strain in response to difficult or demanding circumstances, together with negative feelings about that experience. Stress may be expressed directly or indirectly.
+0 — Not stress: The segment does not convey this combination of psychological stress and negative feelings. Describing a potentially stressful event alone is insufficient for a positive label.
+Instruction
+{{INSTRUCTION}}
+
+Post (JSON string)
+{{POST_JSON}}
+
+Required output
+Return only 0 or 1.
+Do not include an explanation, quotation marks, or any other text.

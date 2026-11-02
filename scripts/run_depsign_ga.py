@@ -16,20 +16,23 @@ import re
 if __package__:
     from . import depsign_evaluator as evaluator
     from . import qwen_client
+    from . import parent_critique
     from . import run_depsign_pipeline_smoke as pipeline
     from .ga_report import CompactReport
     from .prompt_similarity import PromptSimilarityReport
 else:
     import depsign_evaluator as evaluator
     import qwen_client
+    import parent_critique
     import run_depsign_pipeline_smoke as pipeline
     from ga_report import CompactReport
     from prompt_similarity import PromptSimilarityReport
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs/experiment_v1.json"
-TEMPLATE = ROOT / "prompts/ga_crossover_mutation_v1.txt"
-DEFAULT_OPERATOR_PROMPT = ROOT / "prompts/crossover_and_mutation_prompt.json"
+TEMPLATE = ROOT / "prompts/depsign/ga_crossover_mutation_v1.txt"
+DEFAULT_OPERATOR_PROMPT = ROOT / "prompts/depsign/crossover_and_mutation_prompt.json"
+CRITIQUE_PROMPT = ROOT / "prompts/depsign/parent_critique_prompt.json"
 DEFAULT_DATA = ROOT / "data/processed/depsign/dev_100.tsv"
 PURPOSE = "ga_development_pilot_not_held_out_test"
 PARENT_SELECTION_MODES = ("wheel", "random", "tour")
@@ -211,8 +214,8 @@ def load_operator_prompts(data, name=None):
         raise ValueError("Operator prompt fields must be nonempty strings")
     if "description" in prompts and not isinstance(prompts["description"], str):
         raise ValueError("Operator prompt description must be a string")
-    if prompts.get("feedback", "none") not in ("none", "parent_metrics"):
-        raise ValueError("Operator feedback must be none or parent_metrics")
+    if prompts.get("feedback", "none") not in ("none", "parent_metrics", "parent_critique"):
+        raise ValueError("Operator feedback must be none, parent_metrics or parent_critique")
     count = prompts.get("children_per_request", 1)
     if type(count) is not int or count not in (1, 2):
         raise ValueError("Operator children_per_request must be 1 or 2")
@@ -267,7 +270,8 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
     if operator_prompts is None:
         operator_prompts = load_operator_prompts(DEFAULT_OPERATOR_PROMPT.read_bytes())
     contract = operator_contract(operations, operator_prompts)
-    parent_input = [p["instruction"] for p in parents]
+    participating_parents = parents if operations["crossover"] else parents[:1]
+    parent_input = [p["instruction"] for p in participating_parents]
     if operator_prompts.get("feedback", "none") == "parent_metrics":
         parent_input = parent_feedback(parents, operations, allow_unscored=allow_unscored)
         contract = (
@@ -276,6 +280,17 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
             "Each row sum is the number of true examples of that class. Metrics belong to the instruction in the same record, "
             "not to the untested crossover or child. Aggregate errors suggest hypotheses, not causes. "
             "Do not copy metrics into the instruction. " + contract)
+    elif operator_prompts.get("feedback") == "parent_critique":
+        parent_input = []
+        for parent in participating_parents:
+            critique = parent.get("critique")
+            if not critique and not allow_unscored:
+                raise ValueError(f"Missing critique for parent {parent['id']}")
+            parent_input.append({"instruction": parent["instruction"],
+                                 "critique": critique or "Not generated: preparation placeholder only."})
+        contract = ("Each critique belongs only to the parent instruction in the same record. "
+                    "Critiques are hypotheses from aggregate development errors, not proven causes. "
+                    "Do not copy critique text, metrics or commentary into the final instruction. " + contract)
     replacements = {"{{TASK_SPEC_JSON}}": json.dumps(sections[0].strip(), ensure_ascii=False),
                     "{{PARENTS_JSON}}": json.dumps(parent_input, ensure_ascii=False, separators=(",", ":") if operator_prompts.get("feedback") == "parent_metrics" else None),
                     "{{OPERATIONS_JSON}}": json.dumps(operations),
@@ -440,6 +455,22 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         summary["requested_generations"] = generations
         summary["rules"]["generations_after_initialization"] = generations
         parameters, attempts, retries = load_settings(config)
+        if feedback_mode == "parent_critique":
+            paths["critique_prompt.json"] = CRITIQUE_PROMPT
+            frozen["critique_prompt.json"] = CRITIQUE_PROMPT.read_bytes()
+            summary["sources"]["critique_prompt.json"] = {
+                "path": str(CRITIQUE_PROMPT), "sha256": evaluator.digest(frozen["critique_prompt.json"])}
+            critique_prompt, critique_parameters = parent_critique.load_settings(config, frozen["critique_prompt.json"])
+            summary["critique"] = {
+                "prompt": {**summary["sources"]["critique_prompt.json"], **critique_prompt},
+                "model": evaluator.MODEL, "parameters": critique_parameters,
+                "max_proposal_attempts": 3, "max_transport_retries": 1,
+                "seed_policy": "sha256_search_seed_parent_critique_input_attempt",
+                "cache_scope": "this_run_parent_id_instruction_confusion_matrix",
+                "requests": 0, "transport_retries": 0, "cache_hits": 0,
+                "responses_with_usage": 0,
+                "reported_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                "parents": []}
         children_per_request = operator_prompts.get("children_per_request", 1)
         if "generation_max_tokens" in operator_prompts:
             parameters = {**parameters, "max_tokens": operator_prompts["generation_max_tokens"]}
@@ -482,6 +513,9 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                        generation_parameters=parameters, classification_parameters=evaluator.PARAMETERS)
         tokenizer = evaluator.load_tokenizer()
         task, template = (frozen[key].decode("utf-8") for key in ("task_template.txt", "generation_template.txt"))
+        critic = (parent_critique.ParentCritic(task, critique_prompt, critique_parameters, tokenizer,
+                                              seed, summary["critique"])
+                  if feedback_mode == "parent_critique" else None)
         if save_details:
             (output / "instructions").mkdir()
         prepared_runs = {}
@@ -579,7 +613,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             item.update(macro_f1=row["macro_f1"], status="complete_with_request_errors" if row["request_error_count"] else "complete")
             if row["request_error_count"]:
                 raise RuntimeError(f"{item['id']} has request errors; score retained")
-            if feedback_mode == "parent_metrics":
+            if feedback_mode in ("parent_metrics", "parent_critique"):
                 item["performance"] = {key: metrics[key] for key in (
                     "macro_f1", "confusion_matrix")}
             # Retained individuals keep their measured score, not all request payloads in memory.
@@ -601,7 +635,11 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             build_request(task, template, parents[:2], parameters, tokenizer,
                           {"crossover": crossover_probability > 0, "mutation": mutation_probability > 0},
                           operator_prompts=operator_prompts, allow_unscored=True)
-        if feedback_mode == "parent_metrics":
+            if critic is not None:
+                for parent in parents:
+                    parent_critique.build_request(task, parent, critique_prompt, critique_parameters,
+                                                  tokenizer, allow_unscored=True)
+        if feedback_mode in ("parent_metrics", "parent_critique"):
             summary["feedback_preparation"] = "Unscored placeholders only; complete feedback requests checked before each generation call."
         if prepare_only:
             summary.update(status="prepared", stage="prepared")
@@ -657,6 +695,11 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                     chosen = [parent_lookup[i] for i in parent_ids]
                     if any(operations.values()):
                         service_check()
+                        if critic is not None:
+                            for parent in (chosen if operations["crossover"] else chosen[:1]):
+                                summary["stage"] = f"critique:{parent['id']}"
+                                parent["critique"] = critic.critique(parent)
+                            summary["stage"] = f"generation:{group_id}"
                         request, tokens = build_request(task, template, chosen, parameters, tokenizer, operations, operator_prompts=operator_prompts)
                         try:
                             child = generate_child(request, tokenizer, seed=seed, slot=slot, generation=generation,

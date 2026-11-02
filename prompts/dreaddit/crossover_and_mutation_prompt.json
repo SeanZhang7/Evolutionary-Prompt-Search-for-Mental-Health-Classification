@@ -1,0 +1,11 @@
+{
+  "prompts": [
+    {
+      "name": "baseline",
+      "description": "Original crossover and mutation instructions, extracted without changing the rendered text.",
+      "both": "First combine the two parent instructions into a short crossover instruction. Then mutate that crossover instruction into the final instruction. Return exactly two fields: {\"crossover\":\"combined instruction\",\"instruction\":\"mutated instruction\"}. Keep crossover within {{MAX_CROSSOVER_TOKENS}} tokens and instruction within {{MAX_INSTRUCTION_TOKENS}} tokens. These are ceilings; prefer short edits so the entire JSON fits the output budget.",
+      "crossover_only": "Combine the two parent instructions. Do not perform mutation. Return exactly one field: {\"crossover\":\"combined instruction\"}. Keep it within {{MAX_CROSSOVER_TOKENS}} tokens. The program will use this as the final instruction.",
+      "mutation_only": "Mutate the first parent instruction only; ignore the second parent. Do not perform crossover. Be creative! Return exactly one field: {\"instruction\":\"mutated instruction\"}. Keep it within {{MAX_INSTRUCTION_TOKENS}} tokens."
+    }
+  ]
+}
