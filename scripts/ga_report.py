@@ -30,6 +30,10 @@ class CompactReport:
         report = {
             "status": summary["status"], "error": summary["error"], "stage": summary["stage"],
             "purpose": summary["purpose"], "seed": summary["seed"],
+            "dataset": summary.get("dataset", "depsign"),
+            "label_meanings": summary.get("label_meanings"),
+            "sampling_seed": summary.get("sampling_seed"),
+            "sampling_manifest": summary.get("sampling_manifest"),
             "label_mode": summary.get("label_mode", "three_class"),
             "labels": summary.get("labels"), "label_mapping": summary.get("label_mapping"),
             "best": best_metrics,

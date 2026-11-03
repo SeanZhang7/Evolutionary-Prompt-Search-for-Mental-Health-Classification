@@ -1,4 +1,4 @@
-"""Shared DepSign candidate preparation, classification, and scoring.
+"""Shared DepSign/Dreaddit candidate preparation, classification, and scoring.
 
 Used by GA, fixed-file development evaluation, and data preparation.
 The separation of candidate evaluation from search follows EvoPrompt's design:
@@ -26,25 +26,37 @@ TASK_TEMPLATE_PATH = ROOT / "prompts/depsign/depsign_task_v1.txt"
 LABEL_MAP = {"not depression": "not_depression", "moderate": "moderate", "severe": "severe"}
 LABELS = list(LABEL_MAP.values())
 LABEL_MODES = ("three_class", "binary")
+DATASETS = ("depsign", "dreaddit")
 
 
-def task_spec(label_mode="three_class", *, task_template_file=None):
+def task_spec(label_mode=None, *, task_template_file=None, dataset="depsign"):
+    if dataset not in DATASETS:
+        raise ValueError(f"Unknown dataset: {dataset}")
+    if label_mode is None:
+        label_mode = "binary" if dataset == "dreaddit" else "three_class"
+    if dataset == "dreaddit" and label_mode != "binary":
+        raise ValueError("Dreaddit requires --label-mode binary (or omit --label-mode)")
     if label_mode not in LABEL_MODES:
         raise ValueError(f"Unknown label mode: {label_mode}")
     mapping = (dict(LABEL_MAP) if label_mode == "three_class" else
                {"not depression": "not_depression", "moderate": "depression", "severe": "depression"})
     template_path = (TASK_TEMPLATE_PATH if label_mode == "three_class" else ROOT / "prompts/depsign/depsign_task_Bi.txt")
+    if dataset == "dreaddit":
+        mapping = {"0": "0", "1": "1"}
+        template_path = ROOT / "prompts/dreaddit/dreaddit_task_v1.txt"
     if task_template_file is not None:
         template_path = Path(task_template_file).resolve()
     if label_mode != "three_class" and template_path == (ROOT / "prompts/depsign/depsign_task_v2.txt").resolve():
         raise ValueError("depsign_task_v2.txt requires --label-mode three_class")
-    return {"label_mode": label_mode, "label_mapping": mapping,
+    meanings = ({"0": "not stress", "1": "stress"} if dataset == "dreaddit" else
+                {label: label.replace("_", " ") for label in dict.fromkeys(mapping.values())})
+    return {"dataset": dataset, "label_meanings": meanings, "label_mode": label_mode, "label_mapping": mapping,
             "labels": list(dict.fromkeys(mapping.values())),
             "task_template_path": template_path}
 
 
-def task_metadata(label_mode="three_class", *, task_template_file=None):
-    spec = task_spec(label_mode, task_template_file=task_template_file)
+def task_metadata(label_mode=None, *, task_template_file=None, dataset="depsign"):
+    spec = task_spec(label_mode, task_template_file=task_template_file, dataset=dataset)
     return {**spec, "task_template_path": str(spec["task_template_path"])}
 
 
@@ -66,14 +78,14 @@ PARAMETERS = {
 }
 
 
-def parse_label(content, label_mode="three_class"):
-    if isinstance(content, str) and content.strip() in task_spec(label_mode)["labels"]:
+def parse_label(content, label_mode=None, *, dataset="depsign"):
+    if isinstance(content, str) and content.strip() in task_spec(label_mode, dataset=dataset)["labels"]:
         return content.strip()
     return "INVALID"
 
 
-def calculate_metrics(records, label_mode="three_class"):
-    labels = task_spec(label_mode)["labels"]
+def calculate_metrics(records, label_mode=None, *, dataset="depsign"):
+    labels = task_spec(label_mode, dataset=dataset)["labels"]
     if not records:
         raise ValueError("Cannot score zero records")
     matrix = [[0] * (len(labels) + 1) for _ in labels]
@@ -138,18 +150,19 @@ def validate_instruction(instruction, tokenizer):
     return instruction, instruction_tokens
 
 
-def prepare_candidate(instruction, samples, tokenizer, *, task_template=None, label_mode="three_class"):
+def prepare_candidate(instruction, samples, tokenizer, *, task_template=None, label_mode=None, dataset="depsign"):
     """Prepare every request before inference; only the instruction slot changes.
 
     Samples use the cleaned TSV schema: PID, Text data, Label. Outer instruction
     whitespace is stripped once; the returned instruction is the exact text used.
     No model requests are made by this function.
     """
-    spec = task_spec(label_mode)
+    spec = task_spec(label_mode, dataset=dataset)
+    label_mode = spec["label_mode"]
     instruction, instruction_tokens = validate_instruction(instruction, tokenizer)
     if not samples or len({row["PID"] for row in samples}) != len(samples):
         raise ValueError("Samples must be nonempty and have unique PIDs")
-    if any(row["Label"] not in LABEL_MAP for row in samples):
+    if any(row["Label"] not in spec["label_mapping"] for row in samples):
         raise ValueError("Unexpected sample label")
     if task_template is None:
         task_template = spec["task_template_path"].read_text(encoding="utf-8")
@@ -159,9 +172,9 @@ def prepare_candidate(instruction, samples, tokenizer, *, task_template=None, la
     prepared = []
     for row in samples:
         request, details = build_request(row["Text data"], template, tokenizer)
-        prepared.append({"PID": row["PID"], "gold": spec["label_mapping"][row["Label"]], "label_mode": label_mode, "request": request, **details})
+        prepared.append({"PID": row["PID"], "gold": spec["label_mapping"][row["Label"]], "label_mode": label_mode, "dataset": dataset, "request": request, **details})
     return {
-        "label_mode": label_mode, "instruction": instruction, "instruction_tokens": instruction_tokens,
+        "dataset": dataset, "label_mode": label_mode, "instruction": instruction, "instruction_tokens": instruction_tokens,
         "task_template": task_template, "template": template, "requests": prepared,
     }
 
@@ -190,7 +203,7 @@ def classify(prepared):
             reasoning=message.get("reasoning") or message.get("reasoning_content"),
             finish_reason=choice.get("finish_reason"), usage=response.get("usage"),
         )
-        result["prediction"] = parse_label(result["raw_output"], prepared.get("label_mode", "three_class"))
+        result["prediction"] = parse_label(result["raw_output"], prepared.get("label_mode", "three_class"), dataset=prepared.get("dataset", "depsign"))
     except HTTPError as exc:
         result["raw_http_response"] = exc.read().decode("utf-8", errors="replace")
         result["request_error"] = f"HTTP {exc.code}"
@@ -215,7 +228,7 @@ def evaluate_candidate(candidate, *, on_result=None):
         results.append(result)
         if on_result is not None:
             on_result(index, len(prepared), result)
-    return {"metrics": calculate_metrics(results, candidate.get("label_mode", "three_class")), "predictions": results}
+    return {"metrics": calculate_metrics(results, candidate.get("label_mode", "three_class"), dataset=candidate.get("dataset", "depsign")), "predictions": results}
 
 
 def digest(data):
@@ -231,13 +244,14 @@ def load_tokenizer():
     return AutoTokenizer.from_pretrained(ROOT / "LLM/Qwen3.5-9B", local_files_only=True)
 
 
-def load_data(data_file, *, data=None):
+def load_data(data_file, *, data=None, dataset="depsign"):
     """Validate an explicit dev TSV and use every record in file order."""
+    mapping = task_spec(dataset=dataset)["label_mapping"]
     cleaned_dev = (ROOT / CLEAN_DEV).resolve()
     source = Path(data_file).resolve()
     if data is None:
         data = source.read_bytes()
-    is_cleaned_dev = source == cleaned_dev
+    is_cleaned_dev = dataset == "depsign" and source == cleaned_dev
     if is_cleaned_dev:
         cleaning = json.loads((source.parent / "summary.json").read_text(encoding="utf-8"))
         if digest(data) != cleaning["output_sha256"][source.name]:
@@ -252,7 +266,7 @@ def load_data(data_file, *, data=None):
         if (set(row) != set(reader.fieldnames)
                 or any(not isinstance(row[key], str) or not row[key].strip() for key in reader.fieldnames)):
             raise ValueError(f"Malformed or empty fields in data record {index}")
-        if row["Label"] not in LABEL_MAP:
+        if row["Label"] not in mapping:
             raise ValueError(f"Unexpected label in data record {index}: {row['Label']!r}")
     if len({row["PID"] for row in rows}) != len(rows) or len({row["Text data"] for row in rows}) != len(rows):
         raise ValueError("Data file must have unique PIDs and texts; clean duplicates/conflicts first")
@@ -264,23 +278,24 @@ def load_data(data_file, *, data=None):
     }
 
 
-def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, label_mode="three_class",
-                task_template_file=None):
+def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, label_mode=None,
+                task_template_file=None, dataset="depsign"):
     """Save one fixed instruction and all selected requests without model calls."""
-    dataset = load_data(data_file)
-    source, data, rows, selected = (dataset[key] for key in ("source", "data", "rows", "selected"))
+    loaded_data = load_data(data_file, dataset=dataset)
+    source, data, rows, selected = (loaded_data[key] for key in ("source", "data", "rows", "selected"))
     instruction_path = Path(instruction_path).resolve()
     instruction_data = instruction_path.read_bytes()
     model_path = ROOT / "LLM/Qwen3.5-9B"
     if tokenizer is None:
         tokenizer = load_tokenizer()
-    spec = task_spec(label_mode, task_template_file=task_template_file)
-    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer, label_mode=label_mode,
+    spec = task_spec(label_mode, task_template_file=task_template_file, dataset=dataset)
+    label_mode = spec["label_mode"]
+    candidate = prepare_candidate(instruction_data.decode("utf-8"), selected, tokenizer, label_mode=label_mode, dataset=dataset,
                                   task_template=spec["task_template_path"].read_text(encoding="utf-8"))
     prepared = candidate["requests"]
     template = candidate["template"]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-    output = Path(output).resolve() if output is not None else ROOT / "data/processed/depsign/evaluation_runs" / stamp
+    output = Path(output).resolve() if output is not None else ROOT / "data/processed" / dataset / "evaluation_runs" / stamp
     output.mkdir(parents=True, exist_ok=False)
     with (output / "sample.tsv").open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=["PID", "Text data", "Label"], delimiter="\t", lineterminator="\n")
@@ -296,12 +311,12 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, lab
     counts = Counter(item["gold"] for item in prepared)
     manifest = {
         "status": "prepared", "purpose": DEV_PURPOSE,
-        "evaluation_scope": dataset["scope"],
+        "evaluation_scope": loaded_data["scope"],
         "source": str(source), "source_sha256": digest(data),
         "source_record_count": len(rows), "sample_count": len(selected),
-        "cleaning_manifest_verified": dataset["is_cleaned_dev"],
+        "cleaning_manifest_verified": loaded_data["is_cleaned_dev"],
         "sample_sha256": digest((output / "sample.tsv").read_bytes()),
-        "prompt_sha256": digest(template.encode("utf-8")), "prompt_reference": "kayalvizhi2022dataset, section 3.2; project paraphrase",
+        "prompt_sha256": digest(template.encode("utf-8")), "prompt_reference": ("kayalvizhi2022dataset, section 3.2; project paraphrase" if dataset == "depsign" else "user_supplied_dreaddit_task_definitions"),
         "instruction_source": str(instruction_path), "instruction_source_sha256": digest(instruction_data),
         "instruction_sha256": digest(candidate["instruction"].encode("utf-8")),
         "instruction_tokens": candidate["instruction_tokens"],
@@ -311,6 +326,7 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, lab
         "task_template_sha256": digest(candidate["task_template"].encode("utf-8")),
         "script_sha256": digest(Path(__file__).read_bytes()),
         "evaluator_sha256": digest(Path(__file__).read_bytes()),
+        "dataset": dataset, "label_meanings": spec["label_meanings"],
         "label_mode": label_mode, "label_mapping": spec["label_mapping"], "sampling_seed": None,
         "sampling": "all rows in source file order; no sampling or shuffle",
         "selected_records": [{"PID": r["PID"], "source_record": source_indices[r["PID"]], "raw_label": r["Label"]} for r in selected],
@@ -323,12 +339,12 @@ def prepare_run(instruction_path, output=None, *, data_file, tokenizer=None, lab
         "client_versions": {name: version(name) for name in ["transformers", "torch", "vllm"]},
         "tokenizer_files_sha256": {name: digest((model_path / name).read_bytes()) for name in ["tokenizer.json", "tokenizer_config.json", "chat_template.jinja", "config.json"]},
         "transport_retries": 0,
-        "train_or_test_accessed": False if dataset["is_cleaned_dev"] else None,
+        "train_or_test_accessed": False if loaded_data["is_cleaned_dev"] else None,
     }
     save_json(output / "manifest.json", manifest)
     print(f"Output directory: {output}", flush=True)
     print(f"Instruction file: {instruction_path} ({candidate['instruction_tokens']} tokens)", flush=True)
-    print(f"Prepared {len(selected)} records ({dataset['scope']}); classes: {manifest['class_counts']}; truncated: {manifest['truncated_count']}", flush=True)
+    print(f"Prepared {len(selected)} records ({loaded_data['scope']}); classes: {manifest['class_counts']}; truncated: {manifest['truncated_count']}", flush=True)
     return {"output": output, "manifest": manifest, "candidate": candidate}
 
 

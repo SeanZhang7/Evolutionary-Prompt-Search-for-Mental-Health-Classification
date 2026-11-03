@@ -409,10 +409,10 @@ def generation_metrics(generation, population):
             "best_macro_f1": max(item["macro_f1"] for item in population)}
 
 
-def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
-                     seed=11, generations=None, prepare_only=False, save_details=True, label_mode="three_class",
-                     parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
-                     task_template_file=None, no_early_stopping=False):
+def _run_search(output, *, prompts_file=None, data_file=None,
+                     seed=11, generations=None, prepare_only=False, save_details=True, label_mode=None,
+                     parent_selection=None, operator_prompt_file=None, operator_prompt_name=None,
+                     task_template_file=None, no_early_stopping=False, dataset="depsign"):
     """Shared search loop; compact mode performs no intermediate file writes."""
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -432,14 +432,32 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                "method_reference": "guo2024connecting", "script_sha256": evaluator.digest(Path(__file__).read_bytes())}
     print(f"GA output directory: {output}", flush=True)
     try:
-        summary.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file),
+        summary.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file, dataset=dataset),
                        context_tokens=evaluator.CONTEXT_TOKENS)
-        spec = evaluator.task_spec(label_mode, task_template_file=task_template_file)
-        paths = {"prompts_snapshot.json": Path(prompts_file or pipeline.default_prompts(label_mode)).resolve(),
+        spec = evaluator.task_spec(label_mode, task_template_file=task_template_file, dataset=dataset)
+        label_mode = spec["label_mode"]
+        prompt_dir = ROOT / "prompts" / dataset
+        data_file = data_file or (DEFAULT_DATA if dataset == "depsign" else
+                                  ROOT / "data/processed/dreaddit/dre_dev_100.tsv")
+        prompts_file = prompts_file or (pipeline.default_prompts(label_mode) if dataset == "depsign" else
+                                       prompt_dir / "humanPrompt.json")
+        operator_prompt_file = operator_prompt_file or (DEFAULT_OPERATOR_PROMPT if dataset == "depsign" else
+                                                         prompt_dir / "crossover_and_mutation_prompt.json")
+        paths = {"prompts_snapshot.json": Path(prompts_file).resolve(),
                  "data_snapshot.tsv": Path(data_file).resolve(), "config_snapshot.json": CONFIG,
-                 "task_template.txt": spec["task_template_path"], "generation_template.txt": TEMPLATE,
+                 "task_template.txt": spec["task_template_path"], "generation_template.txt": (TEMPLATE if dataset == "depsign" else prompt_dir / "ga_crossover_mutation_v1.txt"),
                  "operator_prompts.json": Path(operator_prompt_file).resolve()}
+        sample_manifest = Path(data_file).resolve().with_suffix(".manifest.json")
+        if dataset == "dreaddit" and sample_manifest.is_file():
+            paths["sample_manifest.json"] = sample_manifest
         frozen = {name: path.read_bytes() for name, path in paths.items()}
+        if "sample_manifest.json" in frozen:
+            sampling = json.loads(frozen["sample_manifest.json"])
+            if sampling["sample_sha256"] != evaluator.digest(frozen["data_snapshot.tsv"]):
+                raise ValueError("Dreaddit sample differs from its sampling manifest")
+            summary["sampling_seed"] = sampling["sampling_seed"]
+            summary["sampling_manifest"] = {"path": str(sample_manifest),
+                                             "sha256": evaluator.digest(frozen["sample_manifest.json"])}
         if save_details:
             for name, data in frozen.items():
                 (output / name).write_bytes(data)
@@ -456,6 +474,8 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         summary["rules"]["generations_after_initialization"] = generations
         parameters, attempts, retries = load_settings(config)
         if feedback_mode == "parent_critique":
+            if dataset != "depsign":
+                raise ValueError("Parent critique is currently configured only for DepSign")
             paths["critique_prompt.json"] = CRITIQUE_PROMPT
             frozen["critique_prompt.json"] = CRITIQUE_PROMPT.read_bytes()
             summary["sources"]["critique_prompt.json"] = {
@@ -522,16 +542,16 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
         common_inputs = None
         common_evaluation = None
         if not save_details:
-            dataset = evaluator.load_data(paths["data_snapshot.tsv"], data=frozen["data_snapshot.tsv"])
-            samples = dataset["selected"]
+            loaded_data = evaluator.load_data(paths["data_snapshot.tsv"], data=frozen["data_snapshot.tsv"], dataset=dataset)
+            samples = loaded_data["selected"]
             model_path = evaluator.ROOT / "LLM/Qwen3.5-9B"
             common_inputs = {
-                "sample_count": len(samples), "source_sha256": evaluator.digest(dataset["data"]),
+                "sample_count": len(samples), "source_sha256": evaluator.digest(loaded_data["data"]),
                 "context_tokens": evaluator.CONTEXT_TOKENS,
-                **evaluator.task_metadata(label_mode, task_template_file=task_template_file),
+                **evaluator.task_metadata(label_mode, task_template_file=task_template_file, dataset=dataset),
                 "class_counts": {label: sum(spec["label_mapping"][r["Label"]] == label for r in samples)
                                  for label in spec["labels"]},
-                "evaluation_scope": dataset["scope"],
+                "evaluation_scope": loaded_data["scope"],
                 "task_template_sha256": evaluator.digest(frozen["task_template.txt"]),
                 "tokenizer_files_sha256": {name: evaluator.digest((model_path / name).read_bytes())
                                            for name in ("tokenizer.json", "tokenizer_config.json",
@@ -549,7 +569,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             nonlocal common_inputs
             if not save_details:
                 prepared_runs[item["id"]] = evaluator.prepare_candidate(
-                    item["instruction"], samples, tokenizer, task_template=task, label_mode=label_mode)
+                    item["instruction"], samples, tokenizer, task_template=task, label_mode=label_mode, dataset=dataset)
                 item["status"] = "prepared"
                 return
             check_sources()
@@ -557,7 +577,7 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
             prepared = evaluator.prepare_run(output / item["instruction_file"],
                                               output / item["evaluation_directory"],
                                               tokenizer=tokenizer, data_file=paths["data_snapshot.tsv"], label_mode=label_mode,
-                                              task_template_file=spec["task_template_path"])
+                                              task_template_file=spec["task_template_path"], dataset=dataset)
             signature = pipeline.input_signature(prepared["manifest"])
             if common_inputs is not None and common_inputs != signature:
                 raise ValueError("Candidate evaluation inputs changed")
@@ -806,10 +826,10 @@ def _run_search(output, *, prompts_file=None, data_file=DEFAULT_DATA,
     return summary
 
 
-def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
-           seed=11, generations=None, prepare_only=False, save_details=False, label_mode="three_class",
-           parent_selection=None, operator_prompt_file=DEFAULT_OPERATOR_PROMPT, operator_prompt_name=None,
-           task_template_file=None, no_early_stopping=False):
+def run_ga(output, *, prompts_file=None, data_file=None,
+           seed=11, generations=None, prepare_only=False, save_details=False, label_mode=None,
+           parent_selection=None, operator_prompt_file=None, operator_prompt_name=None,
+           task_template_file=None, no_early_stopping=False, dataset="depsign"):
     """Write the compact report once on exit; default search uses memory only."""
     if generations is not None:
         validate_generations(generations)
@@ -822,7 +842,7 @@ def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
                      prepare_only=prepare_only, save_details=save_details, label_mode=label_mode,
                      parent_selection=parent_selection, operator_prompt_file=operator_prompt_file,
                      operator_prompt_name=operator_prompt_name, task_template_file=task_template_file,
-                     no_early_stopping=no_early_stopping)
+                     no_early_stopping=no_early_stopping, dataset=dataset)
     result = _run_search(output, **arguments)
     report(result)
     if result["status"] != "prepared":
@@ -833,12 +853,16 @@ def run_ga(output, *, prompts_file=None, data_file=DEFAULT_DATA,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES, default="three_class")
+    parser.add_argument("--task", choices=evaluator.DATASETS, default="depsign",
+                        help="Task and default prompt/data paths (default: depsign)")
+    parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES,
+                        help="Default: three_class for DepSign; binary for Dreaddit")
     parser.add_argument("--task-template-file", type=Path,
                         help="Override the fixed classification task template (must match the label mode)")
-    parser.add_argument("--prompts-file", type=Path, help="Default: humanPrompt_Bi.json for binary; humanPrompt.json otherwise")
-    parser.add_argument("--data-file", type=Path, default=DEFAULT_DATA, help="Dev TSV; default: fixed dev_100.tsv")
-    parser.add_argument("--operator-prompt-file", type=Path, default=DEFAULT_OPERATOR_PROMPT,
+    parser.add_argument("--prompts-file", type=Path,
+                        help="Dataset prompt file; DepSign binary uses humanPrompt_Bi.json, otherwise humanPrompt.json")
+    parser.add_argument("--data-file", type=Path, help="Search TSV; default: dev_100.tsv for DepSign, dre_dev_100.tsv for Dreaddit")
+    parser.add_argument("--operator-prompt-file", type=Path,
                         help="JSON file with both, crossover_only, and mutation_only instructions")
     parser.add_argument("--operator-prompt-name", help="Select a named operator prompt in the JSON collection (default: baseline)")
     parser.add_argument("--seed", type=int, default=11)
@@ -852,15 +876,19 @@ def main(argv=None):
     parser.add_argument("--prepare-only", action="store_true", help="Validate inputs and requests without HTTP calls")
     parser.add_argument("--save-details", action="store_true", help="Also keep snapshots, raw responses and all individual evaluations")
     args = parser.parse_args(argv)
+    try:
+        args.label_mode = evaluator.task_spec(args.label_mode, dataset=args.task)["label_mode"]
+    except ValueError as exc:
+        parser.error(str(exc))
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     if args.label_mode == "binary":
         stamp = "binary_" + stamp
-    output = args.output_dir or ROOT / "data/processed/depsign/ga_runs" / stamp
+    output = args.output_dir or ROOT / "data/processed" / args.task / "ga_runs" / stamp
     result = run_ga(output, prompts_file=args.prompts_file, data_file=args.data_file,
                     seed=args.seed, generations=args.generations, prepare_only=args.prepare_only,
                     save_details=args.save_details, label_mode=args.label_mode, parent_selection=args.parent_selection,
                     operator_prompt_file=args.operator_prompt_file, operator_prompt_name=args.operator_prompt_name,
-                    task_template_file=args.task_template_file, no_early_stopping=args.no_early_stopping)
+                    task_template_file=args.task_template_file, no_early_stopping=args.no_early_stopping, dataset=args.task)
     if result["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 

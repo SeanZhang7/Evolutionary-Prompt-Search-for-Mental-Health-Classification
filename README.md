@@ -2,7 +2,27 @@
 
 This project investigates whether evolutionary prompt search improves mental health text classification with frozen LLM weights. Planned comparisons include human-written prompts, independent random search, ordinary EA initialization, and **validity- and reliability-inspired initialization**.
 
-The project supports fixed-file prompt evaluation and configurable GA search on DepSign development data. Transfer experiments are not yet implemented. The same Qwen3.5-9B checkpoint supports classification and candidate generation, with separate greedy and sampling settings. The fixed-file evaluation pipeline only classifies; it does not generate prompts.
+The project supports fixed-file prompt evaluation on DepSign and configurable GA search on DepSign and Dreaddit. Transfer experiments are not yet implemented. The same Qwen3.5-9B checkpoint supports classification and candidate generation, with separate greedy and sampling settings. The fixed-file evaluation pipeline only classifies; it does not generate prompts.
+
+## Dreaddit stress classification
+
+Use `scripts/run_ga.py --task dreaddit` for stress classification; `--task depsign` selects depression classification and is the default. This selects the prompts in `prompts/dreaddit/`, binary labels `0` (not stress) and `1` (stress), and `data/processed/dreaddit/dre_dev_100.tsv`. DepSign remains the default dataset. Dreaddit rejects `--label-mode three_class`; omitting the label-mode flag selects binary automatically. Only exact `0` or `1` after stripping outer whitespace is accepted; other outputs count as errors in two-class macro-F1.
+
+The fixed search sample comes from `dreaddit-train.csv`, not an official dev split. Exact duplicate text with one label keeps its first record; all records in conflicting text groups are excluded. Cleaning leaves 2,817 items (1,335 label 0; 1,482 label 1). Proportional sampling with seed 1729 produces **47 label-0 and 53 label-1 items**. Text is unchanged, and multiple segments may share a source post. The adjacent manifest records exclusions, source IDs/post IDs, counts, hashes and the sampling seed. Test data is not used.
+
+```bash
+# Create the sample once; existing sample/manifest files are never overwritten.
+python -B scripts/sample_dreaddit_dev.py
+
+# Validate with the local tokenizer, without model calls.
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
+  --task dreaddit --generations 20 --parent-selection tour \
+  --operator-prompt-name baseline --prepare-only
+```
+
+Remove `--prepare-only` to search, using a vLLM server with the same context limit. Dreaddit currently supplies only `baseline`: one child per proposal group and the best N survivors. It shares the existing experiment configuration, including operation probabilities, decoding, deduplication and early stopping. Its ten initial instructions retain their IDs; depression-specific wording has been adapted for stress and the provenance is recorded in the prompt file.
+
+Results go to `data/processed/dreaddit/ga_runs/`, with the existing best prompt, performance, fitness and similarity files. Reports identify the dataset, label meanings, sampling seed and search seed separately. This is an independent search experiment, not a cross-dataset transfer result. The single-prompt and fixed-file CLI tools remain DepSign tools in this version.
 
 ## Quick start
 
@@ -72,7 +92,7 @@ PROMPT_SEARCH_CONTEXT_TOKENS=4096 ./start_vllm.sh
 
 # Client terminal (prompt-search environment)
 export PROMPT_SEARCH_CONTEXT_TOKENS=4096
-python -B scripts/run_depsign_ga.py --label-mode three_class \
+python -B scripts/run_ga.py --label-mode three_class \
   --task-template-file prompts/depsign/depsign_task_v2.txt --generations 20 --prepare-only
 # Remove --prepare-only to run the search.
 
@@ -88,8 +108,8 @@ Both runners default to dev100 and record the selected template and context limi
 Add `--label-mode binary` to GA, fixed-file evaluation, or single-prompt evaluation. Binary mode uses `prompts/depsign/depsign_task_Bi.txt`; GA and fixed-file evaluation default to `prompts/depsign/humanPrompt_Bi.json`. All three runners use the existing `dev_100.tsv` by default in this mode.
 
 ```bash
-python -B scripts/run_depsign_ga.py --label-mode binary --generations 20 --prepare-only
-python -B scripts/run_depsign_ga.py --label-mode binary --generations 20
+python -B scripts/run_ga.py --label-mode binary --generations 20 --prepare-only
+python -B scripts/run_ga.py --label-mode binary --generations 20
 
 # Evaluate the fixed binary prompts without search:
 python -B scripts/run_depsign_pipeline_smoke.py --label-mode binary
@@ -108,8 +128,8 @@ With the model server running at a 4,096-token context (see the commands above),
 
 ```bash
 export PROMPT_SEARCH_CONTEXT_TOKENS=4096
-python -B scripts/run_depsign_ga.py --generations 5 --prepare-only
-python -B scripts/run_depsign_ga.py --generations 5
+python -B scripts/run_ga.py --generations 5 --prepare-only
+python -B scripts/run_ga.py --generations 5
 ```
 
 Defaults: `prompts/depsign/humanPrompt.json`, `data/processed/depsign/dev_100.tsv`, and seed 11. `--generations G` accepts a positive integer and overrides `search.generations_after_initialization` in `configs/experiment_v1.json` (currently 1). G is the maximum number of evolution steps after G0. Other options are `--prompts-file`, `--data-file`, `--seed`, and `--output-dir`. Preparation makes no HTTP requests; it checks all initial classification requests and a sample parent pair. Actual selected pairs are checked before generation. Each command creates a separate run; there is no resume support.
@@ -121,7 +141,7 @@ Add `--no-early-stopping` to disable plateau early stopping for one run and cont
 Choose parent selection with `search.parent_selection` in `configs/experiment_v1.json` (default `"wheel"`), or override it for one run:
 
 ```bash
-python -B scripts/run_depsign_ga.py --label-mode binary --generations 20 --parent-selection tour
+python -B scripts/run_ga.py --label-mode binary --generations 20 --parent-selection tour
 ```
 
 | Mode | Parent selection for each child |
@@ -175,7 +195,7 @@ Use the same context limit in both terminals; 8,192 leaves room for the larger r
 PROMPT_SEARCH_CONTEXT_TOKENS=8192 ./start_vllm.sh
 
 # Client terminal: remove --prepare-only to run the search.
-PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_depsign_ga.py \
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
   --label-mode three_class --task-template-file prompts/depsign/depsign_task_v2.txt \
   --generations 20 --parent-selection tour --operator-prompt-name v4 --prepare-only
 ```
@@ -189,7 +209,7 @@ Select `--operator-prompt-name v5` to critique each participating parent before 
 Edit [parent_critique_prompt.json](prompts/depsign/parent_critique_prompt.json) for criticism and the `v5` entry in [crossover_and_mutation_prompt.json](prompts/depsign/crossover_and_mutation_prompt.json) for offspring generation. `model.critique` in the experiment config defaults to temperature 0.3, top_p 0.8, top_k 20, 768 output tokens and thinking off. V5 offspring have a separate 1536-token budget and the existing instruction limits. Aggregate errors suggest hypotheses, not proven causes or guaranteed improvements.
 
 ```bash
-PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_depsign_ga.py \
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
   --label-mode three_class --task-template-file prompts/depsign/depsign_task_v2.txt \
   --generations 20 --parent-selection tour --operator-prompt-name v5 --prepare-only
 ```
