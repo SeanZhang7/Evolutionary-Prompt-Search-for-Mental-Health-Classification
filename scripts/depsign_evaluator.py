@@ -15,6 +15,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -116,6 +117,22 @@ def calculate_metrics(records, label_mode=None, *, dataset="depsign"):
         "invalid_policy": f"All records retained; failed/invalid predictions count as errors; macro over {len(labels)} real labels only",
         "purpose": "candidate_evaluation_scope_defined_by_runner",
     }
+
+
+def task_background(template):
+    """Extract background using the required standalone Instruction heading."""
+    if template.count("{{INSTRUCTION}}") != 1 or template.count("{{POST_JSON}}") != 1:
+        raise ValueError("Expected exactly one instruction and one post placeholder")
+    sections = re.split(r"\r?\nInstruction[ \t]*\r?\n", template)
+    if len(sections) != 2 or "{{INSTRUCTION}}" not in sections[1]:
+        raise ValueError("Task template requires exactly one standalone 'Instruction' heading before {{INSTRUCTION}}")
+    background, instruction_section = sections
+    before_slot, _, remainder = instruction_section.partition("{{INSTRUCTION}}")
+    if "{{POST_JSON}}" in background or "{{POST_JSON}}" in before_slot or "{{POST_JSON}}" not in remainder:
+        raise ValueError("Task template must place {{INSTRUCTION}} before {{POST_JSON}}")
+    if not background.strip():
+        raise ValueError("Task template requires task background before {{INSTRUCTION}}")
+    return background.strip()
 
 
 def build_request(text, template, tokenizer):

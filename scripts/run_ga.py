@@ -262,11 +262,7 @@ def parent_feedback(parents, operations, *, allow_unscored=False):
 def build_request(task, template, parents, parameters, tokenizer, operations=None, operator_prompts=None,
                   *, allow_unscored=False):
     operations = operations if operations is not None else {"crossover": True, "mutation": True}
-    if task.count("{{INSTRUCTION}}") != 1 or task.count("{{POST_JSON}}") != 1:
-        raise ValueError("Unexpected fixed task template")
-    sections = re.split(r"\r?\nInstruction[ \t]*\r?\n", task)
-    if len(sections) != 2 or any(marker in sections[0] for marker in ("{{INSTRUCTION}}", "{{POST_JSON}}")):
-        raise ValueError("Cannot isolate task definitions from fixed task template")
+    background = evaluator.task_background(task)
     if operator_prompts is None:
         operator_prompts = load_operator_prompts(DEFAULT_OPERATOR_PROMPT.read_bytes())
     contract = operator_contract(operations, operator_prompts)
@@ -291,7 +287,7 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
         contract = ("Each critique belongs only to the parent instruction in the same record. "
                     "Critiques are hypotheses from aggregate development errors, not proven causes. "
                     "Do not copy critique text, metrics or commentary into the final instruction. " + contract)
-    replacements = {"{{TASK_SPEC_JSON}}": json.dumps(sections[0].strip(), ensure_ascii=False),
+    replacements = {"{{TASK_SPEC_JSON}}": json.dumps(background, ensure_ascii=False),
                     "{{PARENTS_JSON}}": json.dumps(parent_input, ensure_ascii=False, separators=(",", ":") if operator_prompts.get("feedback") == "parent_metrics" else None),
                     "{{OPERATIONS_JSON}}": json.dumps(operations),
                     "{{OUTPUT_CONTRACT}}": contract,

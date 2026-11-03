@@ -36,7 +36,8 @@ def load_settings(config, prompt_bytes):
 
 def build_request(task, parent, prompt, parameters, tokenizer, *, allow_unscored=False):
     # Criticism needs label definitions, not demonstration posts or the classifier wrapper.
-    definitions = re.split(r"\r?\n(?:Few-shot examples|Instruction)[ \t]*\r?\n", task, maxsplit=1)[0]
+    definitions = re.split(r"\r?\nFew-shot examples[ \t]*\r?\n",
+                           evaluator.task_background(task), maxsplit=1)[0]
     if "performance" not in parent and not allow_unscored:
         raise ValueError(f"Missing measured performance for parent {parent['id']}")
     record = {"instruction": parent["instruction"],

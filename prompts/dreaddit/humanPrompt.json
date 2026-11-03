@@ -3,11 +3,11 @@
   "prompts": [
     {
       "id": "prompt_01",
-      "instruction": "Read the text and choose the label that best fits the definitions, only consider stress, and ignore other mental health conditions."
+      "instruction": "Read the text and choose the label that best fits the definitions, only consider related mental health conditions, and ignore other mental health conditions."
     },
     {
       "id": "prompt_02",
-      "instruction": "Compare the text with the supplied label definitions and choose the best fitting label. Strictly follow the label definitions."
+      "instruction": "Compare the text with the given label definitions and choose the best fitting label. Strictly follow the label definitions."
     },
     {
      "id": "prompt_03",
@@ -15,11 +15,11 @@
     },
     {
      "id": "prompt_04",
-     "instruction": "Identify the evidence in the post that supports each applicable label and select the label with the strongest textual support."
+     "instruction": "Identify the evidence in the post that supports each label and select the label with the strongest support."
     },
     {
      "id": "prompt_05",
-     "instruction": "Carefully distinguish between the three labels using the supplied definitions."
+     "instruction": "Carefully distinguish between the labels using the supplied definitions."
     },
     {
      "id": "prompt_06",
@@ -35,7 +35,7 @@
     },
     {
     "id": "prompt_09",
-    "instruction": "Distinguish stress-related evidence from temporary negative emotions, situational distress, and discussions about other people's experiences. Apply the not_stress criteria whenever the text matches those definitions, even if negative emotional language is present."
+    "instruction": "Distinguish label-related evidence from temporary negative emotions, situational distress, and discussions about other people's experiences."
     },
     {
     "id": "prompt_10",
