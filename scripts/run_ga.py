@@ -295,7 +295,9 @@ def build_request(task, template, parents, parameters, tokenizer, operations=Non
                         "Within each child object, every requested instruction field must be a nonempty string containing ONLY the short edited instruction block."
                         if operator_prompts.get("children_per_request", 1) == 2 else
                         "Every requested field must be a nonempty string containing ONLY the short edited instruction block.")}
-    if any(template.count(key) != 1 for key in replacements):
+    # Task background is optional in the generation template; other slots are required.
+    if (template.count("{{TASK_SPEC_JSON}}") > 1
+            or any(template.count(key) != 1 for key in replacements if key != "{{TASK_SPEC_JSON}}")):
         raise ValueError("Unexpected GA template placeholders")
     # One substitution pass: placeholders inside supplied parent text are data.
     prompt = re.sub(r"\{\{(?:TASK_SPEC_JSON|PARENTS_JSON|OPERATIONS_JSON|OUTPUT_CONTRACT|CHILD_FIELD_RULE)\}\}",

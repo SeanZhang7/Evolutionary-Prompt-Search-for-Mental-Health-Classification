@@ -24,4 +24,3 @@ Post (JSON string)
 
 Required output
 Output exactly one of: not_depression, moderate, severe.
-Do not include an explanation, quotation marks, or any other text.

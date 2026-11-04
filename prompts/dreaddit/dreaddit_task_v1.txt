@@ -1,6 +1,7 @@
 Task
 Given a Reddit text segment, classify whether the author expresses psychological stress accompanied by negative feelings.
 label definitions:
+Instruction
 1 — Stress
 0 — Not stress
 

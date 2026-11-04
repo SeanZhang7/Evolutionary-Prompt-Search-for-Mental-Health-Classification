@@ -22,7 +22,7 @@ PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
 
 Remove `--prepare-only` to search, using a vLLM server with the same context limit. Dreaddit currently supplies only `baseline`: one child per proposal group and the best N survivors. It shares the existing experiment configuration, including operation probabilities, decoding, deduplication and early stopping. Its ten initial instructions retain their IDs; depression-specific wording has been adapted for stress and the provenance is recorded in the prompt file.
 
-Results go to `data/processed/dreaddit/ga_runs/`, with the existing best prompt, performance, fitness and similarity files. Reports identify the dataset, label meanings, sampling seed and search seed separately. This is an independent search experiment, not a cross-dataset transfer result. The single-prompt and fixed-file CLI tools remain DepSign tools in this version.
+Results go to `data/processed/dreaddit/ga_runs/`, with the existing best prompt, performance, fitness and similarity files. Reports identify the dataset, label meanings, sampling seed and search seed separately. This is an independent search experiment, not a cross-dataset transfer result. Single-prompt evaluation also supports `--task dreaddit` through `scripts/evaluate_depsign_prompt.py`, saving metrics and the confusion-matrix plot under `Results/dreaddit/`. The fixed-file CLI remains DepSign-only.
 
 ## Quick start
 
@@ -77,6 +77,7 @@ Each evaluation writes `Results/depsign/<timestamp>/`:
 - `performance.json`: exact metrics, error-analysis summaries, the evaluated instruction/template, input hashes, and settings.
 - `predictions.csv`: every evaluated post, its label/prediction, actual input text, raw output, and request/format diagnostics.
 - `errors.csv`: only incorrect or invalid predictions, for inspection.
+- `confusion_matrix.png`: automatically plotted after each scored evaluation, for binary or three-class labels. Rows are true labels; columns are predictions, including INVALID. Cells show counts and row percentages. Partial runs are marked; preparation-only or zero-prediction runs have no plot.
 
 Per-class **A** means `(TP + TN) / n` with that class positive and all other outputs negative; it differs from recall. Overall accuracy counts every invalid output/request failure as incorrect. Confusion rates divide by the true class's support, and ties are reported. Invalid outputs are separate from wrong-label confusions. Reports are written once on completion or handled interruption; partial evaluations are marked explicitly. No prompt generation or search occurs.
 

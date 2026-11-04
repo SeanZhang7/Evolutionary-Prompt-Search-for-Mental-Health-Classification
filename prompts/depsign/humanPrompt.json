@@ -3,7 +3,7 @@
   "prompts": [
     {
       "id": "prompt_01",
-      "instruction": "Read the text and choose the label that best fits the definitions, only consider depression, and ignore other mental health conditions. Be careful to assign text with \"severe\" only when it clearly matches the definition."
+      "instruction": "Read the text and choose the label that best fits the definitions."
     },
     {
       "id": "prompt_02",
@@ -15,27 +15,27 @@
     },
     {
      "id": "prompt_04",
-     "instruction": "Identify the evidence in the post that supports each applicable label and select the label with the strongest textual support. Do not assume symptoms or experiences that are not supported by the text."
+     "instruction": "Identify the evidence in the post that supports each applicable label and select the label with the strongest textual support."
     },
     {
      "id": "prompt_05",
-     "instruction": "Carefully distinguish between the three labels using the supplied definitions. When the text appears to match multiple categories, compare the relevant criteria and select the single best-supported label."
+     "instruction": "Carefully distinguish between the labels using the supplied definitions. When the text appears to match multiple categories, compare the relevant criteria and select the single best-supported label."
     },
     {
      "id": "prompt_06",
-    "instruction": "Classify the post strictly according to the provided label definitions. Do not automatically assign severe based on negative emotions, emotional intensity, or general psychological distress alone."
+    "instruction": "Classify the post strictly according to the provided label definitions. Do not automatically assign labels based on negative emotions, emotional intensity, or general psychological distress alone."
     },
     {
     "id": "prompt_07",
-    "instruction": "Evaluate the evidence for all three labels before making a decision. Select severe only when the text provides clear evidence matching its definition; otherwise, choose the best-supported label."
+    "instruction": "Evaluate the evidence for all labels before making a decision. Select one only when the text provides clear evidence matching its definition; otherwise, choose the best-supported label."
     },
     {
     "id": "prompt_08",
-    "instruction": "Carefully distinguish moderate from severe using the supplied definitions. Pay particular attention to fluctuations in emotional state, periods of improvement, and expressions of hope when evaluating the moderate category."
+    "instruction": "Carefully distinguish labels from severe using the supplied definitions."
     },
     {
     "id": "prompt_09",
-    "instruction": "Distinguish depression-related evidence from temporary negative emotions, situational distress, and discussions about other people's experiences. Apply the not_depression criteria whenever the post matches those definitions, even if negative emotional language is present."
+    "instruction": "Distinguish label-related evidence from other mental health issues."
     },
     {
     "id": "prompt_10",

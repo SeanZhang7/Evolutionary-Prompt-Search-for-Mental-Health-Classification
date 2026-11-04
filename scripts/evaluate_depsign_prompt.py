@@ -20,10 +20,10 @@ CSV_FIELDS = ["PID", "gold", "prediction", "error_type", "text", "input_text_use
               "truncated", "raw_output", "finish_reason", "request_error", "reasoning"]
 
 
-def analyze_predictions(records, label_mode="three_class"):
+def analyze_predictions(records, label_mode=None, *, dataset="depsign"):
     """Extend the shared macro-F1 calculation without changing its invalid policy."""
-    labels = evaluator.task_spec(label_mode)["labels"]
-    metrics = evaluator.calculate_metrics(records, label_mode)
+    labels = evaluator.task_spec(label_mode, dataset=dataset)["labels"]
+    metrics = evaluator.calculate_metrics(records, label_mode, dataset=dataset)
     matrix = metrics["confusion_matrix"]["values"]
     n = metrics["n"]
     metrics["accuracy"] = sum(matrix[i][i] for i in range(len(labels))) / n
@@ -78,7 +78,8 @@ def analyze_predictions(records, label_mode="three_class"):
 
 
 def render_report(report):
-    lines = ["# Single-prompt DepSign evaluation", "", f"Status: **{report['status']}**",
+    name = "Dreaddit" if report.get("task") == "dreaddit" else "DepSign"
+    lines = [f"# Single-prompt {name} evaluation", "", f"Status: **{report['status']}**",
              f"Evaluated: {report['evaluated_n']} / {report['requested_n']} records.",
              f"Label mode: {report.get('label_mode', 'three_class')}", ""]
     if report["error"]:
@@ -103,6 +104,9 @@ def render_report(report):
               "| --- | " + " | ".join(["---:"] * len(metrics["confusion_matrix"]["columns"])) + " |"]
     for label, values in zip(metrics["confusion_matrix"]["rows"], metrics["confusion_matrix"]["values"]):
         lines.append(f"| {label} | " + " | ".join(str(value) for value in values) + " |")
+    if report.get("confusion_matrix_plot"):
+        lines += ["", "![Confusion matrix](confusion_matrix.png)", "",
+                  "Each cell shows count and percentage within its true class (row)."]
     analysis = report["error_analysis"]
     lines += ["", "## Error analysis", "",
               "Wrong-label confusions exclude INVALID outputs and request errors. Rates use the true class's support.", ""]
@@ -134,8 +138,43 @@ def write_predictions(path, records):
         writer.writerows(records)
 
 
-def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA, prepare_only=False, label_mode="three_class",
-                   task_template_file=None):
+def plot_confusion_matrix(path, report):
+    """Plot the scored counts, including INVALID, with percentages within each true class."""
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.figure import Figure
+
+    matrix = report["metrics"]["confusion_matrix"]
+    values = matrix["values"]
+    figure = Figure(figsize=(7, 4.8), constrained_layout=True)
+    FigureCanvasAgg(figure)
+    axis = figure.subplots()
+    maximum = max(max(row) for row in values)
+    heatmap = axis.imshow(values, cmap="Blues", vmin=0, vmax=max(1, maximum), aspect="auto")
+    figure.colorbar(heatmap, ax=axis, label="Count")
+    axis.set_xticks(range(len(matrix["columns"])), matrix["columns"], rotation=25, ha="right")
+    axis.set_yticks(range(len(matrix["rows"])), matrix["rows"])
+    for i, row in enumerate(values):
+        support = sum(row)
+        for j, count in enumerate(row):
+            rate = f"{count / support:.1%}" if support else "N/A"
+            axis.text(j, i, f"{count}\n({rate})", ha="center", va="center",
+                      color="white" if count > maximum / 2 else "black")
+    partial = report["evaluated_n"] != report["requested_n"]
+    title = ("Confusion matrix" + (" — partial evaluation" if partial else "")
+             + f"\n{report['evaluated_n']}/{report['requested_n']} records; "
+             + f"macro-F1 = {report['metrics']['macro_f1']:.4f}")
+    axis.set(title=title, xlabel="Predicted label", ylabel="True label")
+    temporary = path.with_name("." + path.name + ".tmp")
+    figure.savefig(temporary, format="png", dpi=160)
+    temporary.replace(path)
+    figure.clear()
+
+
+def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=None, prepare_only=False, label_mode=None,
+                   task_template_file=None, dataset="depsign"):
+    spec = evaluator.task_spec(label_mode, dataset=dataset)
+    label_mode = spec["label_mode"]
+    data_file = data_file or (DEFAULT_DATA if dataset == "depsign" else ROOT / "data/processed/dreaddit/dre_dev_100.tsv")
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     records = []
@@ -143,21 +182,21 @@ def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA
               "requested_n": 0, "evaluated_n": 0, "metrics": None, "error_analysis": None,
               "model": evaluator.MODEL, "base_url": evaluator.BASE_URL,
               "context_tokens": evaluator.CONTEXT_TOKENS,
-              "classification_parameters": dict(evaluator.PARAMETERS), **evaluator.task_metadata(label_mode)}
+              "classification_parameters": dict(evaluator.PARAMETERS), **evaluator.task_metadata(label_mode, dataset=dataset), "task": dataset}
     print(f"Results: {output}", flush=True)
     try:
-        report.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file))
+        report.update(evaluator.task_metadata(label_mode, task_template_file=task_template_file, dataset=dataset))
         prompt_file = Path(prompt_file).resolve()
         prompt_bytes = prompt_file.read_bytes()
-        dataset = evaluator.load_data(data_file)
-        samples = dataset["selected"]
+        loaded_data = evaluator.load_data(data_file, dataset=dataset)
+        samples = loaded_data["selected"]
         report["requested_n"] = len(samples)
-        report["dataset"] = {"path": str(dataset["source"]), "sha256": evaluator.digest(dataset["data"]),
+        report["dataset"] = {"path": str(loaded_data["source"]), "sha256": evaluator.digest(loaded_data["data"]),
                              "class_counts": dict(Counter(report["label_mapping"][row["Label"]] for row in samples))}
         tokenizer = evaluator.load_tokenizer()
         task = Path(report["task_template_path"]).read_text(encoding="utf-8")
         candidate = evaluator.prepare_candidate(prompt_bytes.decode("utf-8"), samples, tokenizer, label_mode=label_mode,
-                                                task_template=task)
+                                                task_template=task, dataset=dataset)
         report["prompt"] = {"path": str(prompt_file), "source_sha256": evaluator.digest(prompt_bytes),
                             "instruction": candidate["instruction"], "tokens": candidate["instruction_tokens"],
                             "instruction_sha256": evaluator.digest(candidate["instruction"].encode("utf-8"))}
@@ -194,7 +233,13 @@ def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA
     finally:
         report["evaluated_n"] = len(records)
         if records:
-            report["metrics"], report["error_analysis"] = analyze_predictions(records, label_mode)
+            report["metrics"], report["error_analysis"] = analyze_predictions(records, label_mode, dataset=dataset)
+            try:
+                plot_confusion_matrix(output / "confusion_matrix.png", report)
+                report["confusion_matrix_plot"] = "confusion_matrix.png"
+            except Exception as exc:
+                report["confusion_matrix_plot_error"] = f"{type(exc).__name__}: {exc}"
+                print(f"Confusion matrix plot failed: {exc}", flush=True)
         evaluator.save_json(output / "performance.json", report)
         if report["status"] != "prepared":
             (output / "report.md").write_text(render_report(report), encoding="utf-8")
@@ -214,22 +259,27 @@ def run_evaluation(output, *, prompt_file=DEFAULT_PROMPT, data_file=DEFAULT_DATA
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES, default="three_class")
+    parser.add_argument("--task", choices=evaluator.DATASETS, default="depsign")
+    parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES)
     parser.add_argument("--task-template-file", type=Path,
                         help="Override the fixed classification task template (must match the label mode)")
     parser.add_argument("--prompt-file", type=Path, default=DEFAULT_PROMPT,
                         help="One instruction block in a UTF-8 text file")
-    parser.add_argument("--data-file", type=Path, default=DEFAULT_DATA,
-                        help="TSV with PID, Text data, Label columns; defaults to dev_100.tsv")
+    parser.add_argument("--data-file", type=Path,
+                        help="TSV with PID, Text data, Label columns; defaults to the selected task’s 100-item subset")
     parser.add_argument("--output-dir", type=Path, help="New run directory; existing paths are never overwritten")
     parser.add_argument("--prepare-only", action="store_true", help="Validate all inputs without model requests")
     args = parser.parse_args(argv)
+    try:
+        args.label_mode = evaluator.task_spec(args.label_mode, dataset=args.task)["label_mode"]
+    except ValueError as exc:
+        parser.error(str(exc))
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     if args.label_mode == "binary":
         stamp = "binary_" + stamp
-    output = args.output_dir or RESULTS / stamp
+    output = args.output_dir or (RESULTS if args.task == "depsign" else ROOT / "Results/dreaddit") / stamp
     report = run_evaluation(output, prompt_file=args.prompt_file, data_file=args.data_file, prepare_only=args.prepare_only,
-                            label_mode=args.label_mode, task_template_file=args.task_template_file)
+                            label_mode=args.label_mode, task_template_file=args.task_template_file, dataset=args.task)
     if report["status"] not in {"complete", "prepared"}:
         raise SystemExit(1)
 
