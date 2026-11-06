@@ -1,0 +1,384 @@
+{
+  "status": "complete",
+  "error": null,
+  "stage": "complete",
+  "purpose": "ga_development_pilot_not_held_out_test",
+  "seed": 11,
+  "label_mode": "three_class",
+  "labels": [
+    "not_depression",
+    "moderate",
+    "severe"
+  ],
+  "label_mapping": {
+    "not depression": "not_depression",
+    "moderate": "moderate",
+    "severe": "severe"
+  },
+  "best": {
+    "id": "g004_child_001",
+    "source_id": null,
+    "generation": 4,
+    "macro_f1": 0.40583385142702794,
+    "n": 100,
+    "invalid_output_rate": 0.0,
+    "request_error_count": 0
+  },
+  "best_scope": "completed_error_free_candidates_in_this_run",
+  "prompt_content": "instruction block inserted into the fixed task template",
+  "data": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/depsign/dev_100.tsv",
+    "sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70"
+  },
+  "task_template": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/depsign_task_v1.txt",
+    "sha256": "18955063f15181a5a6f5298cf2939e1360969822c203b8473c60b0b8f636d320"
+  },
+  "operator_prompt": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/crossover_and_mutation_prompt.json",
+    "sha256": "65d237657449c36e3ab41e61c3078121245e5e05140981a68586a851e3fea0ac",
+    "name": "baseline"
+  },
+  "operator_feedback": "none",
+  "feedback_preparation": null,
+  "generation_parameters": {
+    "temperature": 0.8,
+    "top_p": 0.8,
+    "top_k": 20,
+    "max_tokens": 512,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "classification_parameters": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "max_tokens": 16,
+    "seed": 0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "candidate_evaluations": 143,
+  "generation_requests": 194,
+  "last_generation_issue": {
+    "generation": 4,
+    "slot": 10,
+    "proposal_attempt": 1,
+    "transport_retry": 0,
+    "operations": {
+      "crossover": true,
+      "mutation": true
+    },
+    "outcome": "invalid",
+    "rejection_reason": "Expecting ',' delimiter: line 1 column 889 (char 888)",
+    "request_error": null,
+    "finish_reason": "stop",
+    "reasoning": null,
+    "raw_output": "{\"crossover\":\"Compare the post against label definitions to identify directly supported criteria, avoiding unsupported assumptions. Prioritize not_depression for posts matching its definitions despite negative language, distinguishing depression evidence from temporary distress or external discussions. Select the label with the strongest overall match, verifying severe indicators like multiple disorders or suicide history.\",\"instruction\":\"Compare the post against label definitions to identify directly supported criteria, avoiding unsupported assumptions. Prioritize not_depression for posts matching its definitions despite negative language, distinguishing depression evidence from temporary distress or external discussions. Select the label with the strongest overall match, explicitly verifying severe indicators such as multiple disorders or suicide history before finalizing.\"",
+    "usage": {
+      "prompt_tokens": 581,
+      "total_tokens": 711,
+      "completion_tokens": 130,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    }
+  },
+  "requested_generations": 20,
+  "completed_generations": 20,
+  "stopped_early": false,
+  "stop_reason": "generation_limit",
+  "early_stopping_patience": 5,
+  "parent_selection": "tour",
+  "tournament_size": 2,
+  "tournament_tie_break": "first_drawn",
+  "unchanged_mean_generations": 1,
+  "crossover_probability": 0.8,
+  "mutation_probability": 0.8,
+  "deduplication": "exact_text",
+  "input_prompt_count": 10,
+  "initial_duplicates_removed": 0,
+  "duplicate_offspring_skipped": 67,
+  "invalid_offspring_skipped": 0,
+  "skipped_generation_slots": [],
+  "exhausted_slot_action": "skip_invalid_child_and_continue",
+  "max_crossover_tokens": 256,
+  "max_instruction_tokens": 256,
+  "deduplication_stage": "before_classification",
+  "deduplication_scope": "all_prior_candidates_in_this_run",
+  "copied_offspring": 7,
+  "candidate_evaluation_budget": 210,
+  "budget_interpretation": "upper_bound_before_duplicate_skips",
+  "planned_classification_requests": 21000,
+  "completed_classification_requests": 14300,
+  "evaluation_inputs": {
+    "sample_count": 100,
+    "source_sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70",
+    "label_mode": "three_class",
+    "label_mapping": {
+      "not depression": "not_depression",
+      "moderate": "moderate",
+      "severe": "severe"
+    },
+    "labels": [
+      "not_depression",
+      "moderate",
+      "severe"
+    ],
+    "task_template_path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/depsign_task_v1.txt",
+    "class_counts": {
+      "not_depression": 41,
+      "moderate": 51,
+      "severe": 8
+    },
+    "evaluation_scope": "provided_file_all_rows",
+    "task_template_sha256": "18955063f15181a5a6f5298cf2939e1360969822c203b8473c60b0b8f636d320",
+    "tokenizer_files_sha256": {
+      "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "config.json": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+    }
+  },
+  "generation_metrics": [
+    {
+      "generation": 0,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3054281915465658,
+      "best_macro_f1": 0.34424871873196894
+    },
+    {
+      "generation": 1,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.33527624748098867,
+      "best_macro_f1": 0.38304129479516363,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 2,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.354614189521392,
+      "best_macro_f1": 0.38304129479516363,
+      "duplicate_offspring_skipped": 0,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 10,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 3,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3659984498203143,
+      "best_macro_f1": 0.39692203619144256,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 4,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.38025306903212097,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 5,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3831028486517459,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 6,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3857378185368494,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 7,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3857378185368494,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 6,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 4,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 8,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3857378185368494,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 2
+    },
+    {
+      "generation": 9,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3871487851980232,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 5,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 5,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 10,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3873377261403888,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 11,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3873377261403888,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 6,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 4,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 12,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39068539460127016,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 13,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39332637375328855,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 14,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3942285934801214,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 15,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3942285934801214,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 6,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 4,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 16,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3956175129474093,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 5,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 5,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 17,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3964505395509409,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 5,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 5,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 18,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3964505395509409,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 0,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 10,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 19,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3967723544667408,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 5,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 5,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 20,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3967723544667408,
+      "best_macro_f1": 0.40583385142702794,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 1
+    }
+  ],
+  "plot_metric": "best_macro_f1",
+  "best_fitness_definition": "Maximum individual macro-F1 in the retained population of each completed generation. G0 is initialization.",
+  "mean_f1_definition": "Arithmetic mean of individual macro-F1 in the retained population after configured deduplication and selection. G0 is initialization."
+}

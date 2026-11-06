@@ -1,0 +1,1 @@
+Compare the text to 'not_depression' and 'depression' criteria. If symptoms overlap, prioritize specific diagnostic indicators to pinpoint the immediate condition. Choose the single label most strongly backed by the textual evidence.

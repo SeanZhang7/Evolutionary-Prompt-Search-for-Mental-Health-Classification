@@ -1,0 +1,47 @@
+{
+  "policy_version": "depsign-dev-exact-v1",
+  "scope": "dev_only",
+  "source_file": "dev.tsv",
+  "source_sha256": "7ef72562f542cf04c83c537600aadeb684aece8c2fec8699294a1ef3faaa0f6b",
+  "script_sha256": "cadf513318e7bd790e8e2484331f55ed24216970f336efbaa1e77e4347cda91c",
+  "rules": {
+    "grouping": "exact parsed text; no normalization",
+    "conflicts": "exclude every row of a text group with multiple labels",
+    "duplicates": "keep first source record of a non-conflicting text group",
+    "record_index": "1-based data record excluding header; not physical line number",
+    "train_test_used": false,
+    "text_and_labels_modified": false
+  },
+  "conflicting_text_groups": 1,
+  "counts": {
+    "not depression": {
+      "before": 1830,
+      "after": 1817,
+      "duplicate_same_label": 12,
+      "label_conflict": 1
+    },
+    "moderate": {
+      "before": 2306,
+      "after": 2303,
+      "duplicate_same_label": 1,
+      "label_conflict": 2
+    },
+    "severe": {
+      "before": 360,
+      "after": 360,
+      "duplicate_same_label": 0,
+      "label_conflict": 0
+    }
+  },
+  "totals": {
+    "before": 4496,
+    "after": 4480,
+    "duplicate_same_label": 13,
+    "label_conflict": 3
+  },
+  "output_sha256": {
+    "dev_clean.tsv": "b32c71f1200884232e632f10c055439a07df1c0e33305b4aedd5d0e8ac2ac375",
+    "dev_excluded.tsv": "28952b38997aa02be74c2546ca7e6893c70eea2a5080944d40e12650de5c60b4",
+    "dev_decisions.tsv": "d82feb2f1b7d575fa59b39501abdd066a412b8eae274869c2bb5822a98c8d450"
+  }
+}

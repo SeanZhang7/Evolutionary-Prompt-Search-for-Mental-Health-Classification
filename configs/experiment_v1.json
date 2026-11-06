@@ -59,8 +59,8 @@
       "mutation"
     ],
     "operator_requests_per_proposal": 1,
-    "survivor_selection": "mu_plus_lambda_top_mu",
-    "tie_break": "creation_order_parents_then_children",
+    "survivor_selection": "mu_plus_lambda_tournament",
+    "tie_break": "first_drawn",
     "candidate_evaluation_budget": "(generations_after_initialization + 1) * population_size",
     "max_proposal_attempts_per_slot": 3,
     "max_transport_retries_per_request": 1,

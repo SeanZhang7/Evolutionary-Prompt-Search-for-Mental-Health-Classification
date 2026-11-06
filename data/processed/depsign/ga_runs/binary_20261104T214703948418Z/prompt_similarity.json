@@ -1,0 +1,4215 @@
+{
+  "status": "complete",
+  "ga_status": "complete",
+  "error": null,
+  "completed_generations": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "label_mode": "binary",
+  "scope": "Initial instructions and valid children in completed generations only; includes copies and skipped duplicates.",
+  "aggregation": "Mean over participating parent slots per child, then mean over children per generation; missing values excluded per metric.",
+  "interpretation": "Lexical overlap, not classification quality or semantic equivalence. BLEU is directional; TF-IDF is fitted within this run.",
+  "parameters": {
+    "tfidf": {
+      "lowercase": true,
+      "analyzer": "word",
+      "ngram_range": [
+        1,
+        2
+      ],
+      "token_pattern": "(?u)\\b\\w+\\b",
+      "stop_words": null,
+      "norm": "l2",
+      "use_idf": true,
+      "smooth_idf": true,
+      "sublinear_tf": false
+    },
+    "bleu": {
+      "lowercase": true,
+      "tokenize": "13a",
+      "smooth_method": "exp",
+      "max_ngram_order": 4,
+      "effective_order": true
+    },
+    "bleu_scale": "sentence BLEU / 100",
+    "bleu_direction": "child candidate, parent reference",
+    "tfidf_fit": "exact unique instruction texts, initial population plus valid children of completed generations",
+    "empty_vector_policy": "cosine is null when either vector is zero or vocabulary is empty"
+  },
+  "versions": {
+    "scikit-learn": "1.9.1",
+    "sacrebleu": "2.6.0",
+    "matplotlib": "3.11.2"
+  },
+  "unique_text_count": 94,
+  "vocabulary_size": 2097,
+  "prompts": {
+    "parent_001": {
+      "instruction": "Choose the label that best matches the text under the supplied definitions. Return only the label.",
+      "generation": 0
+    },
+    "parent_002": {
+      "instruction": "Start with the most plausible label as a working hypothesis. Identify its strongest supporting evidence, then actively look for contradictions and evidence favoring other labels. Revise the hypothesis when another definition fits better. Do not treat missing evidence as confirmation. Output only the final label.",
+      "generation": 0
+    },
+    "parent_003": {
+      "instruction": "Use elimination before commitment. Compare the text against each supplied definition and rule out labels contradicted by decisive evidence. Missing information alone does not justify elimination. Compare the remaining candidates using their distinguishing criteria; if every label was eliminated, recheck your assumptions. Return the single best-supported label.",
+      "generation": 0
+    },
+    "parent_004": {
+      "instruction": "Organize relevant events and claims by time: earlier circumstances, the present situation, changes, and future expectations. Distinguish actual events from imagined, conditional, or anticipated ones. Use temporal distinctions only where they matter to the supplied label definitions; if timing is irrelevant, decide from the remaining evidence. Output only the selected label.",
+      "generation": 0
+    },
+    "parent_005": {
+      "instruction": "Resolve attribution and scope before classifying. Identify who makes each claim, whom or what it concerns, and whether it is asserted, quoted, questioned, denied, or hypothetical. Use these distinctions to avoid assigning evidence to the wrong subject or treating a denial as an assertion. Apply the supplied definitions and output only the label.",
+      "generation": 0
+    },
+    "parent_006": {
+      "instruction": "Interpret the text as a coherent whole. Consider how contrasts, qualifications, and context change the meaning of individual phrases. Choose the supplied label that best captures the overall interpretation while respecting any decisive criterion in its definition. Do not substitute an unrelated classification scheme. Return only the label.",
+      "generation": 0
+    },
+    "parent_007": {
+      "instruction": "Compare competing cases for the available labels. For each plausible label, identify the strongest supporting detail and the strongest objection grounded in the text. Prefer the case that better satisfies the supplied definition with fewer unsupported assumptions. Keep the comparison internal and return only the selected label.",
+      "generation": 0
+    },
+    "parent_008": {
+      "instruction": "When labeled examples are supplied, compare their evidence patterns with those of the input rather than relying on shared vocabulary or topic. Check whether the similarities and differences matter under the label definitions. If no examples are supplied, compare directly with the definitions without inventing examples. Return only the best-fitting label.",
+      "generation": 0
+    },
+    "parent_009": {
+      "instruction": "Make a provisional decision, then identify the evidence that distinguishes it from competing labels. Consider whether removing that evidence would change the decision and whether the evidence is actually relevant to a supplied criterion. Check that incidental details are not driving the choice. Make the final classification on the complete original text and return only its label.",
+      "generation": 0
+    },
+    "parent_010": {
+      "instruction": "Build an internal evidence table linking relevant statements to the supplied label criteria, including their subject, certainty, and any contradictions. Consolidate repetition unless frequency itself is part of a criterion. Compare the evidence patterns across the available labels; absence of a statement does not prove its opposite. Output only the chosen label, not the table.",
+      "generation": 0
+    },
+    "child_001": {
+      "instruction": "If examples exist, analyze their specific textual evidence patterns against the input, prioritizing structural proof over shared vocabulary or topics. Verify if observed similarities or differences align with the fixed label definitions. If no examples are provided, evaluate the input directly against the definitions without fabrication. Conclude with the single best-fitting label based strictly on this evidence analysis.",
+      "generation": 1
+    },
+    "child_002": {
+      "instruction": "First, tentatively assign a label based on the text's primary intent. Next, isolate the specific textual evidence supporting this choice and contrast it against evidence for alternative labels. Verify that this evidence is directly relevant to the defined criteria and that incidental details do not influence the decision. Test the robustness of your choice by considering if removing key evidence would alter the outcome. Finally, evaluate the complete original text and output only the definitive label.",
+      "generation": 1
+    },
+    "child_003": {
+      "instruction": "Use elimination before commitment. Compare the text against each supplied definition and rule out labels contradicted by decisive evidence. Missing information alone does not justify elimination. Compare the remaining candidates using their distinguishing criteria; if every label was eliminated, recheck your assumptions. Return the single best-supported label.",
+      "generation": 1
+    },
+    "child_004": {
+      "instruction": "Systematically evaluate the text against all provided label definitions. Discard any label where the text contains decisive evidence contradicting its criteria; lack of information cannot justify discarding. Narrow the set to remaining candidates by comparing their unique distinguishing features. If no candidates remain after this rigorous elimination, re-examine your evidence assessment. Output the single label with the strongest cumulative support.",
+      "generation": 1
+    },
+    "child_005": {
+      "instruction": "Analyze the provided text strictly against the supplied label definitions. Identify textual evidence supporting each category, weigh the strongest indicators, and select the single label that best fits. Output only the chosen label name.",
+      "generation": 1
+    },
+    "child_006": {
+      "instruction": "Select the label best matching the text per supplied definitions; return only the label. Form a provisional decision, then isolate evidence distinguishing it from alternatives. Test whether removing this evidence alters the decision and confirm its relevance to the specific criterion. Exclude incidental details from influencing the choice. Perform final classification on the full original text and output only the label.",
+      "generation": 1
+    },
+    "child_007": {
+      "instruction": "Analyze the provided text against the supplied label definitions. Identify specific textual evidence supporting each potential label. Select the single label whose criteria are most fully met by the evidence. Output only the chosen label name.",
+      "generation": 1
+    },
+    "child_008": {
+      "instruction": "Choose the label that best matches the text under the supplied definitions. Return only the label.",
+      "generation": 1
+    },
+    "child_009": {
+      "instruction": "When examples exist, analyze how their evidence patterns align with the input, prioritizing structural similarity over shared vocabulary or topic. Determine if these patterns are decisive under the label definitions. If no examples are provided, apply the definitions directly to the input without fabricating cases. Output only the single most appropriate label.",
+      "generation": 1
+    },
+    "child_010": {
+      "instruction": "When labeled examples are supplied, compare their evidence patterns with those of the input rather than relying on shared vocabulary or topic. Check whether the similarities and differences matter under the label definitions. If no examples are supplied, compare directly with the definitions without inventing examples. Return only the best-fitting label.",
+      "generation": 1
+    },
+    "g002_child_001": {
+      "instruction": "Form a provisional label decision based on the text. Isolate specific textual evidence that supports this choice over alternatives. Verify the decision's stability by testing if removing this evidence changes the outcome; if it does not, the evidence is irrelevant to the specific criterion. Exclude incidental details. Perform final classification on the complete original text and output only the label.",
+      "generation": 2
+    },
+    "g002_child_002": {
+      "instruction": "Eliminate labels contradicted by decisive textual evidence first; absence of evidence is insufficient for elimination. Compare remaining candidates against their unique distinguishing criteria. If all candidates are eliminated, reassess your interpretation of the text. Output the single label with the strongest cumulative support.",
+      "generation": 2
+    },
+    "g002_child_003": {
+      "instruction": "If examples exist, evaluate how their evidence patterns match the input, prioritizing structural similarity over shared words or topics. Decide if these patterns decisively support a label per the definitions. If no examples exist, apply the definitions directly to the input without inventing cases. Output only the single most appropriate label.",
+      "generation": 2
+    },
+    "g002_child_004": {
+      "instruction": "Choose the label that best matches the text under the supplied definitions. Return only the label.",
+      "generation": 2
+    },
+    "g002_child_005": {
+      "instruction": "When labeled examples are supplied, compare their evidence patterns with the input rather than relying on shared vocabulary. Use elimination first: rule out labels contradicted by decisive evidence, noting that missing information alone does not justify elimination. If examples exist, check if similarities and differences matter under the definitions; if none exist, compare directly with definitions without inventing examples. Compare remaining candidates using their distinguishing criteria. If every label was eliminated, recheck assumptions. Return only the single best-fitting label.",
+      "generation": 2
+    },
+    "g002_child_006": {
+      "instruction": "Use elimination before commitment. Compare the text against each supplied definition and rule out labels contradicted by decisive evidence. Missing information alone does not justify elimination. Compare the remaining candidates using their distinguishing criteria; if every label was eliminated, recheck your assumptions. Return the single best-supported label.",
+      "generation": 2
+    },
+    "g002_child_007": {
+      "instruction": "Prioritize elimination: systematically discard labels contradicted by explicit textual evidence, ignoring gaps in information. Once candidates remain, apply their unique distinguishing criteria to select the single best-supported label. If all labels are eliminated, re-evaluate your interpretation of the text before finalizing the decision.",
+      "generation": 2
+    },
+    "g002_child_008": {
+      "instruction": "Form a provisional label based on the text. Isolate specific evidence supporting it while explicitly excluding incidental details. Verify that removing this evidence changes the decision to confirm its necessity. Re-evaluate the full original text to ensure no criteria are missed, then output only the final label.",
+      "generation": 2
+    },
+    "g002_child_009": {
+      "instruction": "Analyze the provided text against the supplied label definitions. Identify specific textual evidence supporting each potential category. Select the single label that most accurately reflects the content based on these criteria. Output only the chosen label name.",
+      "generation": 2
+    },
+    "g002_child_010": {
+      "instruction": "If labeled examples exist, analyze how their evidence patterns align with the input text, prioritizing structural and semantic signals over shared words or topics. Evaluate if these similarities or differences are decisive under the provided label definitions. If no examples are present, compare the input directly against the definitions without fabricating data. Conclude with only the single best-fitting label.",
+      "generation": 2
+    },
+    "g003_child_001": {
+      "instruction": "Examine the input text for specific evidence aligning with the provided label definitions. Evaluate which category the content best supports based strictly on these criteria. Choose the single most accurate label and output only its name.",
+      "generation": 3
+    },
+    "g003_child_002": {
+      "instruction": "Form a provisional label based on the text. Isolate specific textual evidence supporting this choice over alternatives. Test stability by hypothetically removing each piece of evidence; if the decision remains unchanged, discard that detail as irrelevant. Exclude incidental information. Perform final classification on the complete original text and output only the label.",
+      "generation": 3
+    },
+    "g003_child_003": {
+      "instruction": "When examples are provided, analyze evidence patterns instead of relying on shared vocabulary. First, eliminate labels contradicted by decisive evidence; remember that missing information does not justify elimination. Evaluate if similarities or differences in examples align with label definitions; if no examples exist, compare input directly to definitions without inventing them. Compare remaining candidates using their distinguishing criteria. If all labels are eliminated, recheck assumptions. Output only the single best-fitting label.",
+      "generation": 3
+    },
+    "g003_child_004": {
+      "instruction": "If labeled examples exist, examine how their textual evidence patterns align with the input, prioritizing structural and semantic signals over shared vocabulary or themes. Determine if these similarities or divergences are decisive based strictly on the provided label definitions. If no examples are available, compare the input directly against the definitions without inventing data. Conclude with only the single best-fitting label.",
+      "generation": 3
+    },
+    "g003_child_005": {
+      "instruction": "Analyze the text as a unified whole, weighing how contrasts, qualifications, and context reshape individual phrases. Select the provided label that most accurately reflects the overall meaning while strictly adhering to its decisive criteria. Avoid using any external classification framework. Output only the label.",
+      "generation": 3
+    },
+    "g003_child_006": {
+      "instruction": "If examples exist, prioritize structural alignment between their evidence patterns and the input over shared vocabulary or topics. Assess whether these patterns decisively satisfy the label definitions. If no examples are present, apply the definitions directly to the input without fabricating cases. Output only the single most appropriate label.",
+      "generation": 3
+    },
+    "g003_child_007": {
+      "instruction": "Interpret the input text holistically, weighing contrasts and context to determine meaning. Examine textual evidence against the fixed label definitions, using existing examples only if present to validate patterns. Select the one label that best matches the overall interpretation without fabricating data or substituting external schemes. Output only the final label.",
+      "generation": 3
+    },
+    "g003_child_008": {
+      "instruction": "Analyze the provided text against the supplied label definitions. Identify specific textual evidence supporting each potential category. Select the single label that most accurately reflects the content based on these criteria. Output only the chosen label name.",
+      "generation": 3
+    },
+    "g003_child_009": {
+      "instruction": "When labeled examples exist, dissect how their evidence patterns align with the input, prioritizing structural and semantic signals over lexical overlap. Determine if these similarities or differences are decisive based strictly on the provided label definitions. If no examples exist, compare the input directly against the definitions without inventing data. Conclude with only the single best-fitting label.",
+      "generation": 3
+    },
+    "g003_child_010": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test this evidence's necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 3
+    },
+    "g004_child_001": {
+      "instruction": "Analyze the text as a unified whole, weighing how contrasts, qualifications, and context reshape individual phrases. Select the provided label that best reflects the overall interpretation, ensuring it strictly adheres to any decisive criteria within its definition. Do not apply an external classification scheme. Output only the label.",
+      "generation": 4
+    },
+    "g004_child_002": {
+      "instruction": "Analyze the input text holistically, prioritizing context and internal contrasts to derive meaning. Cross-reference textual evidence strictly against the fixed label definitions provided in the template. If examples exist within the template, use them solely to validate observed patterns; do not invent data or apply external frameworks. Choose the single label that most accurately reflects the overall interpretation. Output only the final label.",
+      "generation": 4
+    },
+    "g004_child_003": {
+      "instruction": "Identify the specific textual evidence that uniquely supports the target label against all alternatives. Evaluate the necessity of each piece: if its removal changes the classification outcome, retain it as critical; otherwise, treat it as incidental and disregard. Strip all peripheral details. Perform the final classification decision on the complete original text and output only the resulting label.",
+      "generation": 4
+    },
+    "g004_child_004": {
+      "instruction": "Review the input text and map it strictly to the provided label definitions. Locate concrete textual evidence for each candidate category. Weigh the evidence to determine which label best aligns with the content's primary intent and characteristics. Output exclusively the name of the single selected label.",
+      "generation": 4
+    },
+    "g004_child_005": {
+      "instruction": "Form a provisional label based on the text. Isolate specific textual evidence supporting this choice over alternatives. Test stability by hypothetically removing each piece of evidence; if the decision remains unchanged, discard that detail as irrelevant. Exclude incidental information. Perform final classification on the complete original text and output only the label.",
+      "generation": 4
+    },
+    "g004_child_006": {
+      "instruction": "Identify textual evidence that uniquely supports the target label versus alternatives. Assess necessity: if removing the evidence changes the decision, retain it; otherwise, discard as incidental. Exclude peripheral details. Apply final classification to the complete original text and output only the label.",
+      "generation": 4
+    },
+    "g004_child_007": {
+      "instruction": "Interpret the text as a coherent whole, weighing contrasts and context to form a provisional label. Isolate specific evidence supporting this choice; test its stability by hypothetically removing each piece—if the decision holds, discard it as irrelevant. Perform final classification on the complete original text while respecting all label definitions and decisive criteria, then output only the label.",
+      "generation": 4
+    },
+    "g004_child_008": {
+      "instruction": "Form a tentative label based on the full text. Identify specific evidence distinguishing this choice from others. Test stability by hypothetically removing that evidence; if the label changes, the evidence is critical. Discard incidental details. Apply the final classification to the complete original text and output only the label.",
+      "generation": 4
+    },
+    "g004_child_009": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test this evidence's necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 4
+    },
+    "g004_child_010": {
+      "instruction": "Form a tentative label using the text. Identify specific evidence favoring this label over others. Verify robustness by imagining the removal of each evidence piece; if the decision holds, treat that detail as non-essential. Strip incidental data. Execute final classification on the full original text and output only the label.",
+      "generation": 4
+    },
+    "g005_child_001": {
+      "instruction": "Analyze the input text holistically, prioritizing context and internal contrasts to derive meaning. Cross-reference textual evidence strictly against the fixed label definitions provided in the template. If examples exist within the template, use them solely to validate observed patterns; do not invent data or apply external frameworks. Choose the single label that most accurately reflects the overall interpretation. Output only the final label.",
+      "generation": 5
+    },
+    "g005_child_002": {
+      "instruction": "Review the text for evidence matching the provided label definitions. Evaluate which criteria are met by specific textual details. Choose the single label that best aligns with the content. Output only the selected label name.",
+      "generation": 5
+    },
+    "g005_child_003": {
+      "instruction": "Locate textual evidence that exclusively validates the target label over competing alternatives. Evaluate necessity: retain only if the decision shifts upon removal; discard incidental details. Apply classification to the full original text and output solely the label.",
+      "generation": 5
+    },
+    "g005_child_004": {
+      "instruction": "Analyze the input text holistically, weighing all contextual clues and internal contrasts to derive meaning. Scrutinize specific textual evidence against the fixed label definitions strictly. If examples exist in the template, use them solely to validate observed patterns; otherwise, rely entirely on the text. Select the single label that best aligns with the complete interpretation, ensuring no data fabrication or external schema substitution occurs. Output only the final label.",
+      "generation": 5
+    },
+    "g005_child_005": {
+      "instruction": "Analyze the text holistically, integrating contrasts and contextual nuances to capture the overall interpretation. Identify specific evidence supporting each potential category from the provided definitions. Choose the one label that best aligns with the content while strictly adhering to the supplied classification criteria. Output only the label name.",
+      "generation": 5
+    },
+    "g005_child_006": {
+      "instruction": "Draft a provisional label based on the text. Pinpoint specific evidence supporting this label against alternatives. Test robustness by mentally removing each evidence item; if the conclusion persists, deem it non-essential. Discard irrelevant details. Perform final classification on the complete original text and output only the label.",
+      "generation": 5
+    },
+    "g005_child_007": {
+      "instruction": "Analyze the input text by weighing all contextual cues and contrasting elements to form a holistic interpretation. Scrutinize specific textual evidence against the fixed label definitions, validating patterns only if existing examples are provided. Select the single label that most accurately reflects the overall meaning, ensuring no data fabrication or external scheme substitution occurs. Output strictly the final label.",
+      "generation": 5
+    },
+    "g005_child_008": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Validate necessity: if removing the evidence changes the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 5
+    },
+    "g005_child_009": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test this evidence's necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 5
+    },
+    "g005_child_010": {
+      "instruction": "Identify textual evidence distinguishing the case from alternatives. Evaluate necessity: if removing the evidence changes the decision, it is critical; otherwise, discard as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 5
+    },
+    "g006_child_001": {
+      "instruction": "Analyze the input text comprehensively, balancing conflicting signals and contextual cues to derive its true intent. Scrutinize specific textual evidence, cross-referencing it strictly against the provided label definitions. If examples exist within the input, use them solely to confirm observed patterns; do not invent facts or apply outside frameworks. Choose the single label that most accurately reflects the holistic meaning. Output only the final label.",
+      "generation": 6
+    },
+    "g006_child_002": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test necessity: if removing the evidence alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 6
+    },
+    "g006_child_003": {
+      "instruction": "Scan the input text for phrases matching the provided label definitions. Locate concrete evidence for each candidate category. Compare the strength of support across options. Choose the single label that best aligns with the text's primary meaning according to the fixed criteria. Output only the final label name.",
+      "generation": 6
+    },
+    "g006_child_004": {
+      "instruction": "Analyze the provided text against the supplied label definitions. Identify specific textual evidence supporting each potential category. Select the single label that most accurately reflects the content based on these criteria. Output only the chosen label name.",
+      "generation": 6
+    },
+    "g006_child_005": {
+      "instruction": "Draft a provisional label based on the text. Pinpoint specific textual evidence supporting this choice against alternatives. Test robustness by mentally removing each evidence point; if the decision persists, deem it non-essential. Discard irrelevant details. Perform final classification on the complete original text and output only the label.",
+      "generation": 6
+    },
+    "g006_child_006": {
+      "instruction": "Form a tentative label using the text. Identify specific evidence favoring this label over others. Verify robustness by imagining the removal of each evidence piece; if the decision holds, treat that detail as non-essential. Strip incidental data. Execute final classification on the full original text and output only the label.",
+      "generation": 6
+    },
+    "g006_child_007": {
+      "instruction": "Analyze the input text by synthesizing all contextual cues and contrasting elements to derive a unified meaning. Cross-reference this holistic interpretation strictly against the provided label definitions, utilizing any embedded examples solely to confirm established patterns. Identify the single label that most accurately reflects the text's overall intent, ensuring no external data is fabricated or alternative schemes are imposed. Output only the selected label.",
+      "generation": 6
+    },
+    "g006_child_008": {
+      "instruction": "Draft a tentative label by isolating textual evidence that strictly separates the case from alternatives. Validate each piece: if its removal changes the outcome, it is essential; otherwise, discard it as noise. Exclude peripheral details. Perform final classification on the complete original text and output solely the label.",
+      "generation": 6
+    },
+    "g006_child_009": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against alternatives. Assess necessity: if omitting the evidence alters the decision, retain it; otherwise, discard as incidental. Strip peripheral details. Perform final classification on the complete original text and output only the label.",
+      "generation": 6
+    },
+    "g006_child_010": {
+      "instruction": "Analyze the text against label definitions, identifying specific evidence distinguishing the case from alternatives. Test evidence necessity: if removing it alters the decision, retain it; otherwise discard as incidental. Ignore peripheral details. Select the single label that most accurately reflects the content based on these criteria and output solely the label name.",
+      "generation": 6
+    },
+    "g007_child_001": {
+      "instruction": "Draft a tentative label by isolating textual evidence that uniquely distinguishes the case from alternatives. Validate necessity: if removing the evidence alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 7
+    },
+    "g007_child_002": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test this evidence's necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 7
+    },
+    "g007_child_003": {
+      "instruction": "Analyze the provided text against the supplied label definitions to identify specific textual evidence for each potential category. Draft a tentative label by pinpointing evidence that distinguishes the case from alternatives, then test its necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Select the single label that most accurately reflects the content based on these criteria. Execute final classification on the full original text and output only the chosen label name.",
+      "generation": 7
+    },
+    "g007_child_004": {
+      "instruction": "Scan the input text for phrases matching label definitions. Locate concrete evidence for each candidate category. Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test this evidence's necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Compare the strength of support across options. Ignore peripheral details. Choose the single label that best aligns with the text's primary meaning according to the fixed criteria. Execute final classification on the full original text and output only the final label name.",
+      "generation": 7
+    },
+    "g007_child_005": {
+      "instruction": "Draft a tentative label by isolating textual evidence that strictly separates the case from alternatives. Validate each piece: if its removal changes the outcome, it is essential; otherwise, discard it as noise. Exclude peripheral details. Perform final classification on the complete original text and output solely the label.",
+      "generation": 7
+    },
+    "g007_child_006": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Verify robustness by imagining the removal of each evidence piece; if the decision holds, treat that detail as non-essential. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 7
+    },
+    "g007_child_007": {
+      "instruction": "Identify the decisive textual evidence that separates the input from competing labels. Test each piece: if its removal alters the outcome, retain it as critical; otherwise, treat it as incidental and disregard. Strip all peripheral details. Perform the final classification on the complete original text and output only the assigned label.",
+      "generation": 7
+    },
+    "g007_child_008": {
+      "instruction": "Draft a provisional label based on the text. Pinpoint concrete evidence supporting this choice against alternatives. Test stability by mentally removing each evidence point; if the conclusion persists, deem that detail secondary. Discard irrelevant information. Perform final classification on the complete original text and output the label exclusively.",
+      "generation": 7
+    },
+    "g007_child_009": {
+      "instruction": "Form a tentative label. Gather evidence favoring it over others. Test robustness by mentally removing each piece; if the decision persists, deem it non-essential. Strip incidental data. Classify the complete original text and output only the label.",
+      "generation": 7
+    },
+    "g007_child_010": {
+      "instruction": "Locate textual evidence that definitively distinguishes the target label from all others. Assess each piece: if omitting it alters the classification, mark it critical; if not, discard it as incidental. Remove all peripheral details. Execute the final label decision on the full original text and output solely the resulting label.",
+      "generation": 7
+    },
+    "g008_child_001": {
+      "instruction": "Draft a tentative label by isolating textual evidence that uniquely distinguishes the case from alternatives. Verify necessity: if removing the evidence changes the decision, it is critical; otherwise, discard it as incidental. Exclude peripheral details. Perform final classification on the complete original text and output solely the label.",
+      "generation": 8
+    },
+    "g008_child_002": {
+      "instruction": "Draft a tentative label by pinpointing textual evidence that distinguishes the case from alternatives. Test necessity: if removing the evidence alters the decision, it is critical; otherwise, discard it as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 8
+    },
+    "g008_child_003": {
+      "instruction": "Identify text segments that uniquely confirm the target label versus alternatives. Evaluate each segment: retain only those where removal changes the classification verdict; discard the rest. Strip all non-essential context. Render the final label decision based on the complete original input, outputting strictly the label name.",
+      "generation": 8
+    },
+    "g008_child_004": {
+      "instruction": "Draft a provisional label based on the text. Pinpoint specific phrases supporting this choice against alternatives. Test stability by mentally removing each piece of evidence; if the conclusion remains, deem that detail non-essential. Discard irrelevant data. Perform final classification on the complete original text and output solely the label.",
+      "generation": 8
+    },
+    "g008_child_005": {
+      "instruction": "Analyze the provided text against the supplied label definitions. Identify specific textual evidence supporting each potential category. Test each piece of evidence for necessity: if removing it alters the decision, it is critical; otherwise, discard it as incidental. Select the single label that most accurately reflects the content based on these criteria. Ignore peripheral details. Execute final classification on the full original text and output only the chosen label name.",
+      "generation": 8
+    },
+    "g008_child_006": {
+      "instruction": "Analyze text against label definitions. Isolate evidence uniquely supporting each category. Determine criticality: retain only evidence whose removal alters the classification; disregard the rest. Select the single label that best fits the complete text. Output only the label name.",
+      "generation": 8
+    },
+    "g008_child_007": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against alternatives. Assess necessity: if the evidence is removed and the decision changes, it is critical; otherwise, discard it as incidental. Strip peripheral details. Perform final classification on the complete original text and output only the label.",
+      "generation": 8
+    },
+    "g008_child_008": {
+      "instruction": "Extract core textual evidence that definitively distinguishes the case from all alternatives. Scrutinize each piece: if omitting it alters the label, retain it; otherwise, discard as noise. Eliminate peripheral details. Execute final classification on the full original text and output only the label.",
+      "generation": 8
+    },
+    "g008_child_009": {
+      "instruction": "Identify textual evidence distinguishing the case from alternatives. Draft a tentative label by pinpointing this evidence. Evaluate necessity: if removing the evidence changes the decision, it is critical; otherwise, discard as incidental. Ignore peripheral details. Execute final classification on the full original text and output solely the label.",
+      "generation": 8
+    },
+    "g008_child_010": {
+      "instruction": "Scan the input text for evidence that definitively separates the target label from alternatives. Evaluate each piece: retain only those critical to the classification decision, discarding incidental details. Cross-reference remaining evidence against provided label definitions to identify the single most accurate category. Apply this analysis to the full original text and output exclusively the final label name.",
+      "generation": 8
+    },
+    "g009_child_001": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against alternatives. Assess criticality: if removing the evidence alters the decision, retain it; otherwise, omit it as incidental. Disregard peripheral details. Perform final classification on the complete original text and output only the label.",
+      "generation": 9
+    },
+    "g009_child_002": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against all alternatives. Determine necessity: keep only evidence where removal alters the decision; discard incidental details. Classify the full original text and output only the label.",
+      "generation": 9
+    },
+    "g009_child_003": {
+      "instruction": "Examine the text to find evidence that uniquely supports one category over others. Filter for critical evidence: keep only items where removal changes the decision; ignore the rest. Form a tentative label using this filtered set, then re-evaluate the complete original text to confirm the decision. Output solely the final label name.",
+      "generation": 9
+    },
+    "g009_child_004": {
+      "instruction": "Isolate the single textual fragment that irrefutably validates the target label against every other option. Verify that removing this fragment would shift the classification; if so, keep it, otherwise discard as irrelevant. Analyze the complete original text and output exclusively the final label.",
+      "generation": 9
+    },
+    "g009_child_005": {
+      "instruction": "Evaluate the text against label definitions. Extract specific evidence for each category. Assess criticality by removing evidence; discard items that do not change the final classification. Choose the single label that most accurately represents the entire text. Output only the label name.",
+      "generation": 9
+    },
+    "g009_child_006": {
+      "instruction": "Evaluate the text strictly against provided label definitions. Extract textual evidence that exclusively supports each category. Filter evidence to only those items where removal would change the final classification; discard all other supporting details. Based on the complete set of critical evidence, identify the single most accurate label. Output only the label name.",
+      "generation": 9
+    },
+    "g009_child_007": {
+      "instruction": "Review text and extract evidence for each label category. Evaluate evidence criticality: keep only details whose absence changes the classification outcome; discard irrelevant support. Synthesize retained evidence to identify the single best-fitting label. Output only the label name.",
+      "generation": 9
+    },
+    "g009_child_008": {
+      "instruction": "Locate textual evidence distinguishing the target label from alternatives. Determine necessity: if removing the evidence alters the decision, it is critical; otherwise, discard as incidental. Eliminate peripheral details. Conduct final classification on the full original text and output solely the label.",
+      "generation": 9
+    },
+    "g009_child_009": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against alternatives. Evaluate necessity: if removing any piece changes the outcome, retain it; otherwise, treat it as incidental and disregard. Focus exclusively on core discriminators, ignoring peripheral details. Perform final classification on the complete original text and output only the label.",
+      "generation": 9
+    },
+    "g009_child_010": {
+      "instruction": "Draft a tentative label by identifying textual evidence that distinguishes the case from alternatives. Assess necessity: retain only if removing it alters the decision; discard incidental details. Ignore peripheral information. Perform final classification on the full original text and output solely the label.",
+      "generation": 9
+    },
+    "g010_child_001": {
+      "instruction": "Locate textual evidence that definitively distinguishes the target label from all alternatives. Assess necessity: if excluding any piece alters the classification result, keep it; otherwise, discard as incidental. Concentrate solely on primary discriminators, omitting peripheral details. Execute final classification on the entire original text and output only the label.",
+      "generation": 10
+    },
+    "g010_child_002": {
+      "instruction": "Examine the text and extract evidence for each label. Filter for critical evidence that, if removed, would change the classification outcome. Ignore non-critical details. Based on the remaining critical evidence, assign the single most accurate label. Output only the label name.",
+      "generation": 10
+    },
+    "g010_child_003": {
+      "instruction": "Identify textual evidence that uniquely supports the target label against alternatives. Evaluate necessity: if removing any piece changes the outcome, retain it; otherwise, treat it as incidental and disregard. Focus exclusively on core discriminators, ignoring peripheral details. Perform final classification on the complete original text and output only the label.",
+      "generation": 10
+    },
+    "g010_child_004": {
+      "instruction": "Identify textual evidence that uniquely determines the label versus all other classes. Evaluate each detail: if its absence changes the classification outcome, keep it; if not, remove it as noise. Strip peripheral information. Apply the final decision to the complete original text and output strictly the label.",
+      "generation": 10
+    },
+    "g010_child_005": {
+      "instruction": "Compare the text to label definitions. Extract evidence that uniquely supports one label over others. Determine if each piece is critical (decision changes if removed) or incidental. Retain only critical evidence. Ignore peripheral details. Output the single most accurate label name based on the full original text.",
+      "generation": 10
+    },
+    "g010_child_006": {
+      "instruction": "Draft a provisional label by pinpointing specific textual phrases that support it against alternatives. Test stability by mentally removing each piece of evidence; if the conclusion holds, deem that detail non-essential. Discard irrelevant data. Perform final classification on the complete original text and output solely the label.",
+      "generation": 10
+    },
+    "g010_child_007": {
+      "instruction": "Locate textual evidence that uniquely validates the target label while excluding alternatives. Evaluate necessity: if removing the evidence alters the decision, mark it critical; otherwise, discard as incidental. Eliminate peripheral details. Execute final classification on the full original text and output only the label.",
+      "generation": 10
+    },
+    "g010_child_008": {
+      "instruction": "Isolate core textual evidence that definitively distinguishes the case from all alternatives. Scrutinize each piece: if omitting it alters the label, retain it; otherwise, discard as noise. Eliminate peripheral details. Draft a tentative label by pinpointing this critical evidence. Execute final classification on the full original text and output solely the label.",
+      "generation": 10
+    },
+    "g010_child_009": {
+      "instruction": "Extract textual evidence that strictly separates the case from alternatives. Filter for criticality: keep only items where removal changes the outcome; ignore noise. Evaluate the full original text against label definitions. Select the single label that best fits. Output solely the label name.",
+      "generation": 10
+    },
+    "g010_child_010": {
+      "instruction": "Extract textual evidence that definitively distinguishes the case from alternatives. Validate necessity: retain only evidence whose removal alters the outcome; discard the rest. Exclude peripheral details. Apply final classification to the full original text and output solely the label.",
+      "generation": 10
+    }
+  },
+  "children": [
+    {
+      "child_id": "child_001",
+      "generation": 1,
+      "generation_group": "g001_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_008",
+        "parent_008"
+      ],
+      "compared_parent_ids": [
+        "parent_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_008",
+          "cosine": 0.2987409171004228,
+          "bleu": 0.17046378818063349
+        }
+      ],
+      "mean_cosine": 0.2987409171004228,
+      "mean_bleu": 0.17046378818063349,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_002",
+      "generation": 1,
+      "generation_group": "g001_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_009",
+        "parent_003"
+      ],
+      "compared_parent_ids": [
+        "parent_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_009",
+          "cosine": 0.1755966876272725,
+          "bleu": 0.09547610719875602
+        }
+      ],
+      "mean_cosine": 0.1755966876272725,
+      "mean_bleu": 0.09547610719875602,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_003",
+      "generation": 1,
+      "generation_group": "g001_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_003",
+        "parent_008"
+      ],
+      "compared_parent_ids": [
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "parent_003",
+      "pairs": [
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.9999999999999997,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 0.9999999999999997,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_004",
+      "generation": 1,
+      "generation_group": "g001_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_003",
+        "parent_009"
+      ],
+      "compared_parent_ids": [
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.1378719448997307,
+          "bleu": 0.04622658428509155
+        }
+      ],
+      "mean_cosine": 0.1378719448997307,
+      "mean_bleu": 0.04622658428509155,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_005",
+      "generation": 1,
+      "generation_group": "g001_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "parent_003"
+      ],
+      "compared_parent_ids": [
+        "parent_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 0.17862759687064927,
+          "bleu": 0.06489016881040742
+        }
+      ],
+      "mean_cosine": 0.17862759687064927,
+      "mean_bleu": 0.06489016881040742,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_006",
+      "generation": 1,
+      "generation_group": "g001_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "parent_009"
+      ],
+      "compared_parent_ids": [
+        "parent_001",
+        "parent_009"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 0.24254802230320024,
+          "bleu": 0.0740600634212373
+        },
+        {
+          "parent_id": "parent_009",
+          "cosine": 0.2872193812394287,
+          "bleu": 0.17367892026967552
+        }
+      ],
+      "mean_cosine": 0.2648837017713145,
+      "mean_bleu": 0.12386949184545641,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "child_007",
+      "generation": 1,
+      "generation_group": "g001_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "parent_010"
+      ],
+      "compared_parent_ids": [
+        "parent_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 0.12222759312153278,
+          "bleu": 0.04066870399856363
+        }
+      ],
+      "mean_cosine": 0.12222759312153278,
+      "mean_bleu": 0.04066870399856363,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_008",
+      "generation": 1,
+      "generation_group": "g001_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "parent_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "parent_001",
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_009",
+      "generation": 1,
+      "generation_group": "g001_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_008",
+        "parent_009"
+      ],
+      "compared_parent_ids": [
+        "parent_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_008",
+          "cosine": 0.33518353884140123,
+          "bleu": 0.2705455266067558
+        }
+      ],
+      "mean_cosine": 0.33518353884140123,
+      "mean_bleu": 0.2705455266067558,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "child_010",
+      "generation": 1,
+      "generation_group": "g001_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_008",
+        "parent_001"
+      ],
+      "compared_parent_ids": [
+        "parent_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "parent_008",
+      "pairs": [
+        {
+          "parent_id": "parent_008",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_001",
+      "generation": 2,
+      "generation_group": "g002_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "child_006",
+        "child_009"
+      ],
+      "compared_parent_ids": [
+        "child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "child_006",
+          "cosine": 0.3396204617421139,
+          "bleu": 0.33883800124034863
+        }
+      ],
+      "mean_cosine": 0.3396204617421139,
+      "mean_bleu": 0.33883800124034863,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_002",
+      "generation": 2,
+      "generation_group": "g002_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_003",
+        "child_009"
+      ],
+      "compared_parent_ids": [
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.23986670617261735,
+          "bleu": 0.10237191002487624
+        }
+      ],
+      "mean_cosine": 0.23986670617261735,
+      "mean_bleu": 0.10237191002487624,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_003",
+      "generation": 2,
+      "generation_group": "g002_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "child_009",
+        "parent_009"
+      ],
+      "compared_parent_ids": [
+        "child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "child_009",
+          "cosine": 0.5708376401139189,
+          "bleu": 0.542749676410119
+        }
+      ],
+      "mean_cosine": 0.5708376401139189,
+      "mean_bleu": 0.542749676410119,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_004",
+      "generation": 2,
+      "generation_group": "g002_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "parent_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "parent_001",
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_005",
+      "generation": 2,
+      "generation_group": "g002_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_008",
+        "parent_003"
+      ],
+      "compared_parent_ids": [
+        "parent_008",
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_008",
+          "cosine": 0.5569871828533495,
+          "bleu": 0.3439995714381235
+        },
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.5103713849725947,
+          "bleu": 0.2907363050993103
+        }
+      ],
+      "mean_cosine": 0.533679283912972,
+      "mean_bleu": 0.3173679382687169,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g002_child_006",
+      "generation": 2,
+      "generation_group": "g002_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_003",
+        "parent_008"
+      ],
+      "compared_parent_ids": [
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "parent_003",
+      "pairs": [
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.9999999999999997,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 0.9999999999999997,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_007",
+      "generation": 2,
+      "generation_group": "g002_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_003",
+        "parent_008"
+      ],
+      "compared_parent_ids": [
+        "parent_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_003",
+          "cosine": 0.21894433108463976,
+          "bleu": 0.12400759155069015
+        }
+      ],
+      "mean_cosine": 0.21894433108463976,
+      "mean_bleu": 0.12400759155069015,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_008",
+      "generation": 2,
+      "generation_group": "g002_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "child_006",
+        "child_009"
+      ],
+      "compared_parent_ids": [
+        "child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "child_006",
+          "cosine": 0.24296203299113672,
+          "bleu": 0.10666799934011521
+        }
+      ],
+      "mean_cosine": 0.24296203299113672,
+      "mean_bleu": 0.10666799934011521,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_009",
+      "generation": 2,
+      "generation_group": "g002_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_001",
+        "child_006"
+      ],
+      "compared_parent_ids": [
+        "parent_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_001",
+          "cosine": 0.14795987384573933,
+          "bleu": 0.040439458001950056
+        }
+      ],
+      "mean_cosine": 0.14795987384573933,
+      "mean_bleu": 0.040439458001950056,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g002_child_010",
+      "generation": 2,
+      "generation_group": "g002_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_008",
+        "parent_001"
+      ],
+      "compared_parent_ids": [
+        "parent_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_008",
+          "cosine": 0.33944059690629474,
+          "bleu": 0.18983545113550934
+        }
+      ],
+      "mean_cosine": 0.33944059690629474,
+      "mean_bleu": 0.18983545113550934,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_001",
+      "generation": 3,
+      "generation_group": "g003_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.24307526125015727,
+          "bleu": 0.13263425332493514
+        }
+      ],
+      "mean_cosine": 0.24307526125015727,
+      "mean_bleu": 0.13263425332493514,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_002",
+      "generation": 3,
+      "generation_group": "g003_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_001",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g002_child_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_001",
+          "cosine": 0.432013743986637,
+          "bleu": 0.46076342809468285
+        }
+      ],
+      "mean_cosine": 0.432013743986637,
+      "mean_bleu": 0.46076342809468285,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_003",
+      "generation": 3,
+      "generation_group": "g003_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_005",
+        "g002_child_001"
+      ],
+      "compared_parent_ids": [
+        "g002_child_005"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_005",
+          "cosine": 0.5167771477710889,
+          "bleu": 0.3804077683360424
+        }
+      ],
+      "mean_cosine": 0.5167771477710889,
+      "mean_bleu": 0.3804077683360424,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_004",
+      "generation": 3,
+      "generation_group": "g003_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_010",
+        "parent_003"
+      ],
+      "compared_parent_ids": [
+        "g002_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_010",
+          "cosine": 0.6743974765705163,
+          "bleu": 0.6211960201351936
+        }
+      ],
+      "mean_cosine": 0.6743974765705163,
+      "mean_bleu": 0.6211960201351936,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_005",
+      "generation": 3,
+      "generation_group": "g003_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_006",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "parent_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_006",
+          "cosine": 0.2814661118874975,
+          "bleu": 0.24734242595770492
+        }
+      ],
+      "mean_cosine": 0.2814661118874975,
+      "mean_bleu": 0.24734242595770492,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_006",
+      "generation": 3,
+      "generation_group": "g003_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "child_009",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "child_009",
+          "cosine": 0.5556584321804766,
+          "bleu": 0.5516932082478851
+        }
+      ],
+      "mean_cosine": 0.5556584321804766,
+      "mean_bleu": 0.5516932082478851,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_007",
+      "generation": 3,
+      "generation_group": "g003_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_010",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g002_child_010",
+        "parent_006"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_010",
+          "cosine": 0.17101862816246244,
+          "bleu": 0.05953664513010884
+        },
+        {
+          "parent_id": "parent_006",
+          "cosine": 0.14662883509733224,
+          "bleu": 0.06708423539334497
+        }
+      ],
+      "mean_cosine": 0.15882373162989732,
+      "mean_bleu": 0.06331044026172691,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g003_child_008",
+      "generation": 3,
+      "generation_group": "g003_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "parent_001"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g002_child_009",
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.9999999999999996,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 0.9999999999999996,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_009",
+      "generation": 3,
+      "generation_group": "g003_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_010",
+        "parent_003"
+      ],
+      "compared_parent_ids": [
+        "g002_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_010",
+          "cosine": 0.6892842168347149,
+          "bleu": 0.6508176609279924
+        }
+      ],
+      "mean_cosine": 0.6892842168347149,
+      "mean_bleu": 0.6508176609279924,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g003_child_010",
+      "generation": 3,
+      "generation_group": "g003_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_001",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g002_child_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_001",
+          "cosine": 0.22056107025959182,
+          "bleu": 0.1277311150439403
+        }
+      ],
+      "mean_cosine": 0.22056107025959182,
+      "mean_bleu": 0.1277311150439403,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_001",
+      "generation": 4,
+      "generation_group": "g004_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_006",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "parent_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_006",
+          "cosine": 0.40332996209388566,
+          "bleu": 0.34043393059118676
+        }
+      ],
+      "mean_cosine": 0.40332996209388566,
+      "mean_bleu": 0.34043393059118676,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_002",
+      "generation": 4,
+      "generation_group": "g004_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_007",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g003_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_007",
+          "cosine": 0.269067809288647,
+          "bleu": 0.24400009648904233
+        }
+      ],
+      "mean_cosine": 0.269067809288647,
+      "mean_bleu": 0.24400009648904233,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_003",
+      "generation": 4,
+      "generation_group": "g004_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g003_child_004"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.21989694121839354,
+          "bleu": 0.14918508653824356
+        }
+      ],
+      "mean_cosine": 0.21989694121839354,
+      "mean_bleu": 0.14918508653824356,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_004",
+      "generation": 4,
+      "generation_group": "g004_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g002_child_001"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.14491117190999336,
+          "bleu": 0.06109369414730294
+        }
+      ],
+      "mean_cosine": 0.14491117190999336,
+      "mean_bleu": 0.06109369414730294,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_005",
+      "generation": 4,
+      "generation_group": "g004_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_002",
+        "g003_child_007"
+      ],
+      "compared_parent_ids": [
+        "g003_child_002"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g003_child_002",
+      "pairs": [
+        {
+          "parent_id": "g003_child_002",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_006",
+      "generation": 4,
+      "generation_group": "g004_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.25866625409243194,
+          "bleu": 0.228275176367703
+        }
+      ],
+      "mean_cosine": 0.25866625409243194,
+      "mean_bleu": 0.228275176367703,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_007",
+      "generation": 4,
+      "generation_group": "g004_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_006",
+        "g003_child_002"
+      ],
+      "compared_parent_ids": [
+        "parent_006",
+        "g003_child_002"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_006",
+          "cosine": 0.23839466039145069,
+          "bleu": 0.1575440939839371
+        },
+        {
+          "parent_id": "g003_child_002",
+          "cosine": 0.4052530785836978,
+          "bleu": 0.35939562248829704
+        }
+      ],
+      "mean_cosine": 0.32182386948757424,
+      "mean_bleu": 0.25846985823611707,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g004_child_008",
+      "generation": 4,
+      "generation_group": "g004_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_001",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g002_child_001"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_001",
+          "cosine": 0.31600774646781826,
+          "bleu": 0.26622571693422176
+        }
+      ],
+      "mean_cosine": 0.31600774646781826,
+      "mean_bleu": 0.26622571693422176,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_009",
+      "generation": 4,
+      "generation_group": "g004_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g002_child_001"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g003_child_010",
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g004_child_010",
+      "generation": 4,
+      "generation_group": "g004_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_002",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g003_child_002"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_002",
+          "cosine": 0.23036675223971023,
+          "bleu": 0.2711507834951556
+        }
+      ],
+      "mean_cosine": 0.23036675223971023,
+      "mean_bleu": 0.2711507834951556,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_001",
+      "generation": 5,
+      "generation_group": "g005_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_002",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g004_child_002"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g004_child_002",
+      "pairs": [
+        {
+          "parent_id": "g004_child_002",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_002",
+      "generation": 5,
+      "generation_group": "g005_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.225310633339622,
+          "bleu": 0.2002887392139271
+        }
+      ],
+      "mean_cosine": 0.225310633339622,
+      "mean_bleu": 0.2002887392139271,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_003",
+      "generation": 5,
+      "generation_group": "g005_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_006",
+        "g004_child_003"
+      ],
+      "compared_parent_ids": [
+        "g004_child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_006",
+          "cosine": 0.2703117664704587,
+          "bleu": 0.15672299925878153
+        }
+      ],
+      "mean_cosine": 0.2703117664704587,
+      "mean_bleu": 0.15672299925878153,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_004",
+      "generation": 5,
+      "generation_group": "g005_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_007",
+        "g004_child_008"
+      ],
+      "compared_parent_ids": [
+        "g003_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_007",
+          "cosine": 0.27211816686908324,
+          "bleu": 0.2620390074223908
+        }
+      ],
+      "mean_cosine": 0.27211816686908324,
+      "mean_bleu": 0.2620390074223908,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_005",
+      "generation": 5,
+      "generation_group": "g005_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "parent_006",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "parent_006",
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "parent_006",
+          "cosine": 0.15112589590138983,
+          "bleu": 0.08754210593718513
+        },
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.33920027467254993,
+          "bleu": 0.22080061154581176
+        }
+      ],
+      "mean_cosine": 0.2451630852869699,
+      "mean_bleu": 0.15417135874149845,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g005_child_006",
+      "generation": 5,
+      "generation_group": "g005_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.2527358959070637,
+          "bleu": 0.25099579130569233
+        }
+      ],
+      "mean_cosine": 0.2527358959070637,
+      "mean_bleu": 0.25099579130569233,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_007",
+      "generation": 5,
+      "generation_group": "g005_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_007",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_007",
+          "cosine": 0.25772231556521624,
+          "bleu": 0.2287104309384028
+        }
+      ],
+      "mean_cosine": 0.25772231556521624,
+      "mean_bleu": 0.2287104309384028,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_008",
+      "generation": 5,
+      "generation_group": "g005_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.8001526943731238,
+          "bleu": 0.8514577944359797
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.8001526943731238,
+          "bleu": 0.8514577944359797
+        }
+      ],
+      "mean_cosine": 0.8001526943731238,
+      "mean_bleu": 0.8514577944359797,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g005_child_009",
+      "generation": 5,
+      "generation_group": "g005_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "parent_006"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g003_child_010",
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g005_child_010",
+      "generation": 5,
+      "generation_group": "g005_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.6019325606575665,
+          "bleu": 0.6255038428741333
+        }
+      ],
+      "mean_cosine": 0.6019325606575665,
+      "mean_bleu": 0.6255038428741333,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_001",
+      "generation": 6,
+      "generation_group": "g006_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_007",
+        "g004_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_007",
+          "cosine": 0.1238723971807324,
+          "bleu": 0.13789222737974627
+        }
+      ],
+      "mean_cosine": 0.1238723971807324,
+      "mean_bleu": 0.13789222737974627,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_002",
+      "generation": 6,
+      "generation_group": "g006_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.8762280942114207,
+          "bleu": 0.904565847117099
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.8546277322091947,
+          "bleu": 0.8882678083197121
+        }
+      ],
+      "mean_cosine": 0.8654279132103078,
+      "mean_bleu": 0.8964168277184055,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g006_child_003",
+      "generation": 6,
+      "generation_group": "g006_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g004_child_008"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.185235759451147,
+          "bleu": 0.17473850823769158
+        }
+      ],
+      "mean_cosine": 0.185235759451147,
+      "mean_bleu": 0.17473850823769158,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_004",
+      "generation": 6,
+      "generation_group": "g006_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g004_child_010"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g002_child_009",
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.9999999999999996,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 0.9999999999999996,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_005",
+      "generation": 6,
+      "generation_group": "g006_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "g005_child_008"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.2280632003078707,
+          "bleu": 0.26364397460213745
+        }
+      ],
+      "mean_cosine": 0.2280632003078707,
+      "mean_bleu": 0.26364397460213745,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_006",
+      "generation": 6,
+      "generation_group": "g006_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "g004_child_010"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010",
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": false,
+      "skipped_duplicate": true,
+      "duplicate_of": "g004_child_010",
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        },
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g006_child_007",
+      "generation": 6,
+      "generation_group": "g006_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_007",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g003_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_007",
+          "cosine": 0.1350114244107154,
+          "bleu": 0.09210985163597842
+        }
+      ],
+      "mean_cosine": 0.1350114244107154,
+      "mean_bleu": 0.09210985163597842,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_008",
+      "generation": 6,
+      "generation_group": "g006_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g004_child_003"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.37736849847876264,
+          "bleu": 0.44178590232639153
+        }
+      ],
+      "mean_cosine": 0.37736849847876264,
+      "mean_bleu": 0.44178590232639153,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_009",
+      "generation": 6,
+      "generation_group": "g006_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.29442652247232287,
+          "bleu": 0.24688930214098492
+        }
+      ],
+      "mean_cosine": 0.29442652247232287,
+      "mean_bleu": 0.24688930214098492,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g006_child_010",
+      "generation": 6,
+      "generation_group": "g006_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.43840844901027193,
+          "bleu": 0.3032352020019977
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.39031334019523195,
+          "bleu": 0.38855602660731436
+        }
+      ],
+      "mean_cosine": 0.41436089460275194,
+      "mean_bleu": 0.34589561430465604,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_001",
+      "generation": 7,
+      "generation_group": "g007_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g005_child_008"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.8382455666205364,
+          "bleu": 0.8586417343018917
+        }
+      ],
+      "mean_cosine": 0.8382455666205364,
+      "mean_bleu": 0.8586417343018917,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g007_child_002",
+      "generation": 7,
+      "generation_group": "g007_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": false,
+      "skipped_duplicate": true,
+      "duplicate_of": "g003_child_010",
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_003",
+      "generation": 7,
+      "generation_group": "g007_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.6047093837296295,
+          "bleu": 0.3576911373719682
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.5677551223150606,
+          "bleu": 0.4810315630939845
+        }
+      ],
+      "mean_cosine": 0.586232253022345,
+      "mean_bleu": 0.4193613502329764,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_004",
+      "generation": 7,
+      "generation_group": "g007_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g006_child_003",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g006_child_003",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g006_child_003",
+          "cosine": 0.7371178639347616,
+          "bleu": 0.4471826788513257
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.6013500290556261,
+          "bleu": 0.4936935680264796
+        }
+      ],
+      "mean_cosine": 0.6692339464951939,
+      "mean_bleu": 0.4704381234389027,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_005",
+      "generation": 7,
+      "generation_group": "g007_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g006_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g006_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g006_child_008",
+      "pairs": [
+        {
+          "parent_id": "g006_child_008",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g007_child_006",
+      "generation": 7,
+      "generation_group": "g007_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "g006_child_002"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010",
+        "g006_child_002"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.648999098091534,
+          "bleu": 0.6150543691767936
+        },
+        {
+          "parent_id": "g006_child_002",
+          "cosine": 0.502555042295861,
+          "bleu": 0.6141178395945321
+        }
+      ],
+      "mean_cosine": 0.5757770701936975,
+      "mean_bleu": 0.6145861043856629,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_007",
+      "generation": 7,
+      "generation_group": "g007_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.22363997785502762,
+          "bleu": 0.19441831671949686
+        }
+      ],
+      "mean_cosine": 0.22363997785502762,
+      "mean_bleu": 0.19441831671949686,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g007_child_008",
+      "generation": 7,
+      "generation_group": "g007_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "g006_child_008"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.15532672570839062,
+          "bleu": 0.14911111613145006
+        }
+      ],
+      "mean_cosine": 0.15532672570839062,
+      "mean_bleu": 0.14911111613145006,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g007_child_009",
+      "generation": 7,
+      "generation_group": "g007_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_003",
+        "g004_child_010"
+      ],
+      "compared_parent_ids": [
+        "g004_child_003",
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_003",
+          "cosine": 0.14280541033128155,
+          "bleu": 0.13416456902898055
+        },
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.4053783769561435,
+          "bleu": 0.33738596062656323
+        }
+      ],
+      "mean_cosine": 0.2740918936437125,
+      "mean_bleu": 0.2357752648277719,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g007_child_010",
+      "generation": 7,
+      "generation_group": "g007_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_003",
+        "g005_child_008"
+      ],
+      "compared_parent_ids": [
+        "g004_child_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_003",
+          "cosine": 0.35289022280141913,
+          "bleu": 0.22355850030831984
+        }
+      ],
+      "mean_cosine": 0.35289022280141913,
+      "mean_bleu": 0.22355850030831984,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_001",
+      "generation": 8,
+      "generation_group": "g008_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g006_child_002",
+        "g005_child_003"
+      ],
+      "compared_parent_ids": [
+        "g006_child_002"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g006_child_002",
+          "cosine": 0.6308377310831589,
+          "bleu": 0.6584963694131938
+        }
+      ],
+      "mean_cosine": 0.6308377310831589,
+      "mean_bleu": 0.6584963694131938,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_002",
+      "generation": 8,
+      "generation_group": "g008_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g006_child_002"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008",
+        "g006_child_002"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "skipped_duplicate",
+      "copied": false,
+      "skipped_duplicate": true,
+      "duplicate_of": "g006_child_002",
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.8762280942114207,
+          "bleu": 0.904565847117099
+        },
+        {
+          "parent_id": "g006_child_002",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 0.9381140471057103,
+      "mean_bleu": 0.9522829235585497,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g008_child_003",
+      "generation": 8,
+      "generation_group": "g008_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g007_child_010",
+        "g005_child_008"
+      ],
+      "compared_parent_ids": [
+        "g007_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g007_child_010",
+          "cosine": 0.13731071130699488,
+          "bleu": 0.08543230711459009
+        }
+      ],
+      "mean_cosine": 0.13731071130699488,
+      "mean_bleu": 0.08543230711459009,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_004",
+      "generation": 8,
+      "generation_group": "g008_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g004_child_010",
+        "g005_child_010"
+      ],
+      "compared_parent_ids": [
+        "g004_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g004_child_010",
+          "cosine": 0.20307284067386078,
+          "bleu": 0.16571591069869135
+        }
+      ],
+      "mean_cosine": 0.20307284067386078,
+      "mean_bleu": 0.16571591069869135,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_005",
+      "generation": 8,
+      "generation_group": "g008_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010",
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.42851119542580074,
+          "bleu": 0.43701314622197157
+        },
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.7072716580741631,
+          "bleu": 0.47297765589344826
+        }
+      ],
+      "mean_cosine": 0.5678914267499819,
+      "mean_bleu": 0.4549954010577099,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g008_child_006",
+      "generation": 8,
+      "generation_group": "g008_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g002_child_009",
+        "g004_child_003"
+      ],
+      "compared_parent_ids": [
+        "g002_child_009",
+        "g004_child_003"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.230930174949207,
+          "bleu": 0.23759143301284094
+        },
+        {
+          "parent_id": "g004_child_003",
+          "cosine": 0.1394759886366238,
+          "bleu": 0.03907997513689962
+        }
+      ],
+      "mean_cosine": 0.1852030817929154,
+      "mean_bleu": 0.13833570407487028,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g008_child_007",
+      "generation": 8,
+      "generation_group": "g008_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.3511240207708635,
+          "bleu": 0.38976906713693216
+        }
+      ],
+      "mean_cosine": 0.3511240207708635,
+      "mean_bleu": 0.38976906713693216,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_008",
+      "generation": 8,
+      "generation_group": "g008_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g006_child_008",
+        "g004_child_010"
+      ],
+      "compared_parent_ids": [
+        "g006_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g006_child_008",
+          "cosine": 0.28922257088759884,
+          "bleu": 0.26748930923542025
+        }
+      ],
+      "mean_cosine": 0.28922257088759884,
+      "mean_bleu": 0.26748930923542025,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g008_child_009",
+      "generation": 8,
+      "generation_group": "g008_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_010",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g005_child_010",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": false
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_010",
+          "cosine": 0.8455712954613647,
+          "bleu": 0.823759020189538
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.6757954700746636,
+          "bleu": 0.7015725014436259
+        }
+      ],
+      "mean_cosine": 0.7606833827680142,
+      "mean_bleu": 0.7626657608165819,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g008_child_010",
+      "generation": 8,
+      "generation_group": "g008_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g007_child_010",
+        "g002_child_009"
+      ],
+      "compared_parent_ids": [
+        "g007_child_010",
+        "g002_child_009"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g007_child_010",
+          "cosine": 0.19662485814842715,
+          "bleu": 0.18949152212556475
+        },
+        {
+          "parent_id": "g002_child_009",
+          "cosine": 0.12878299802685983,
+          "bleu": 0.04617692488714054
+        }
+      ],
+      "mean_cosine": 0.1627039280876435,
+      "mean_bleu": 0.11783422350635264,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g009_child_001",
+      "generation": 9,
+      "generation_group": "g009_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g006_child_002"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.2958414069511489,
+          "bleu": 0.2949993538211828
+        }
+      ],
+      "mean_cosine": 0.2958414069511489,
+      "mean_bleu": 0.2949993538211828,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_002",
+      "generation": 9,
+      "generation_group": "g009_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_003",
+        "g006_child_008"
+      ],
+      "compared_parent_ids": [
+        "g005_child_003"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_003",
+          "cosine": 0.24859343774179515,
+          "bleu": 0.31142819692835494
+        }
+      ],
+      "mean_cosine": 0.24859343774179515,
+      "mean_bleu": 0.31142819692835494,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_003",
+      "generation": 9,
+      "generation_group": "g009_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.12829415838455635,
+          "bleu": 0.06147455980595365
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.14589721912099385,
+          "bleu": 0.06388988773780561
+        }
+      ],
+      "mean_cosine": 0.1370956887527751,
+      "mean_bleu": 0.06268222377187962,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g009_child_004",
+      "generation": 9,
+      "generation_group": "g009_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g008_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_008",
+          "cosine": 0.11550833681162992,
+          "bleu": 0.08038693034819339
+        }
+      ],
+      "mean_cosine": 0.11550833681162992,
+      "mean_bleu": 0.08038693034819339,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_005",
+      "generation": 9,
+      "generation_group": "g009_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.22625406943945023,
+          "bleu": 0.3125143350193605
+        }
+      ],
+      "mean_cosine": 0.22625406943945023,
+      "mean_bleu": 0.3125143350193605,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_006",
+      "generation": 9,
+      "generation_group": "g009_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g008_child_008"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.15358615938522674,
+          "bleu": 0.1762135260510825
+        }
+      ],
+      "mean_cosine": 0.15358615938522674,
+      "mean_bleu": 0.1762135260510825,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_007",
+      "generation": 9,
+      "generation_group": "g009_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.1513075310702231,
+          "bleu": 0.1891312413458569
+        }
+      ],
+      "mean_cosine": 0.1513075310702231,
+      "mean_bleu": 0.1891312413458569,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_008",
+      "generation": 9,
+      "generation_group": "g009_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_007",
+        "g006_child_002"
+      ],
+      "compared_parent_ids": [
+        "g008_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_007",
+          "cosine": 0.3651551778130002,
+          "bleu": 0.34674914776899557
+        }
+      ],
+      "mean_cosine": 0.3651551778130002,
+      "mean_bleu": 0.34674914776899557,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_009",
+      "generation": 9,
+      "generation_group": "g009_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g003_child_010",
+        "g008_child_006"
+      ],
+      "compared_parent_ids": [
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.21735360597383532,
+          "bleu": 0.2144456657715305
+        }
+      ],
+      "mean_cosine": 0.21735360597383532,
+      "mean_bleu": 0.2144456657715305,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g009_child_010",
+      "generation": 9,
+      "generation_group": "g009_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g005_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g005_child_008",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g005_child_008",
+          "cosine": 0.49402793164611786,
+          "bleu": 0.49518133330030617
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.5268161971208043,
+          "bleu": 0.5415997297139096
+        }
+      ],
+      "mean_cosine": 0.510422064383461,
+      "mean_bleu": 0.5183905315071079,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g010_child_001",
+      "generation": 10,
+      "generation_group": "g010_group_001",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g009_child_009",
+        "g008_child_005"
+      ],
+      "compared_parent_ids": [
+        "g009_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g009_child_009",
+          "cosine": 0.2554100879888532,
+          "bleu": 0.3078614365753628
+        }
+      ],
+      "mean_cosine": 0.2554100879888532,
+      "mean_bleu": 0.3078614365753628,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_002",
+      "generation": 10,
+      "generation_group": "g010_group_002",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g009_child_009"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.10555966414386712,
+          "bleu": 0.1640169391464001
+        }
+      ],
+      "mean_cosine": 0.10555966414386712,
+      "mean_bleu": 0.1640169391464001,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_003",
+      "generation": 10,
+      "generation_group": "g010_group_003",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g009_child_009",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g009_child_009"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": false
+      },
+      "status": "skipped_duplicate",
+      "copied": true,
+      "skipped_duplicate": true,
+      "duplicate_of": "g009_child_009",
+      "pairs": [
+        {
+          "parent_id": "g009_child_009",
+          "cosine": 1.0,
+          "bleu": 1.0000000000000004
+        }
+      ],
+      "mean_cosine": 1.0,
+      "mean_bleu": 1.0000000000000004,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_004",
+      "generation": 10,
+      "generation_group": "g010_group_004",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_008",
+        "g006_child_008"
+      ],
+      "compared_parent_ids": [
+        "g008_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_008",
+          "cosine": 0.15914958788271943,
+          "bleu": 0.12277765107863417
+        }
+      ],
+      "mean_cosine": 0.15914958788271943,
+      "mean_bleu": 0.12277765107863417,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_005",
+      "generation": 10,
+      "generation_group": "g010_group_005",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_005",
+        "g008_child_007"
+      ],
+      "compared_parent_ids": [
+        "g008_child_005",
+        "g008_child_007"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_005",
+          "cosine": 0.2066644162422616,
+          "bleu": 0.1346494042371825
+        },
+        {
+          "parent_id": "g008_child_007",
+          "cosine": 0.23346389477564047,
+          "bleu": 0.10064933408903069
+        }
+      ],
+      "mean_cosine": 0.22006415550895103,
+      "mean_bleu": 0.11764936916310659,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g010_child_006",
+      "generation": 10,
+      "generation_group": "g010_group_006",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_004",
+        "g008_child_008"
+      ],
+      "compared_parent_ids": [
+        "g008_child_004"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_004",
+          "cosine": 0.7020829476260211,
+          "bleu": 0.7304000216543648
+        }
+      ],
+      "mean_cosine": 0.7020829476260211,
+      "mean_bleu": 0.7304000216543648,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_007",
+      "generation": 10,
+      "generation_group": "g010_group_007",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_007",
+        "g008_child_006"
+      ],
+      "compared_parent_ids": [
+        "g008_child_007"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_007",
+          "cosine": 0.3394898816206605,
+          "bleu": 0.3901843038138364
+        }
+      ],
+      "mean_cosine": 0.3394898816206605,
+      "mean_bleu": 0.3901843038138364,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    },
+    {
+      "child_id": "g010_child_008",
+      "generation": 10,
+      "generation_group": "g010_group_008",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_008",
+        "g003_child_010"
+      ],
+      "compared_parent_ids": [
+        "g008_child_008",
+        "g003_child_010"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_008",
+          "cosine": 0.8106086920831939,
+          "bleu": 0.7589136166635485
+        },
+        {
+          "parent_id": "g003_child_010",
+          "cosine": 0.45668431399692916,
+          "bleu": 0.4741084737870373
+        }
+      ],
+      "mean_cosine": 0.6336465030400615,
+      "mean_bleu": 0.6165110452252929,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g010_child_009",
+      "generation": 10,
+      "generation_group": "g010_group_009",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g008_child_006",
+        "g006_child_008"
+      ],
+      "compared_parent_ids": [
+        "g008_child_006",
+        "g006_child_008"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g008_child_006",
+          "cosine": 0.2528592414953173,
+          "bleu": 0.29317293056470595
+        },
+        {
+          "parent_id": "g006_child_008",
+          "cosine": 0.3255191408726581,
+          "bleu": 0.2754330455725358
+        }
+      ],
+      "mean_cosine": 0.28918919118398767,
+      "mean_bleu": 0.28430298806862087,
+      "valid_pair_counts": {
+        "cosine": 2,
+        "bleu": 2
+      }
+    },
+    {
+      "child_id": "g010_child_010",
+      "generation": 10,
+      "generation_group": "g010_group_010",
+      "sibling_index": 1,
+      "parent_ids": [
+        "g006_child_008",
+        "g008_child_006"
+      ],
+      "compared_parent_ids": [
+        "g006_child_008"
+      ],
+      "operations": {
+        "crossover": false,
+        "mutation": true
+      },
+      "status": "complete",
+      "copied": false,
+      "skipped_duplicate": false,
+      "duplicate_of": null,
+      "pairs": [
+        {
+          "parent_id": "g006_child_008",
+          "cosine": 0.3083375271346713,
+          "bleu": 0.3091173088931402
+        }
+      ],
+      "mean_cosine": 0.3083375271346713,
+      "mean_bleu": 0.3091173088931402,
+      "valid_pair_counts": {
+        "cosine": 1,
+        "bleu": 1
+      }
+    }
+  ],
+  "generations": [
+    {
+      "generation": 1,
+      "child_count": 10,
+      "copied_count": 3,
+      "duplicate_count": 3,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.45131319802323233,
+      "mean_bleu": 0.38121403709256657,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 2,
+      "child_count": 10,
+      "copied_count": 2,
+      "duplicate_count": 2,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.4633310926769433,
+      "mean_bleu": 0.37622780259723265,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 3,
+      "child_count": 10,
+      "copied_count": 1,
+      "duplicate_count": 1,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.47720571923705773,
+      "mean_bleu": 0.4235896320330104,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 4,
+      "child_count": 10,
+      "copied_count": 2,
+      "duplicate_count": 2,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.41640705067984546,
+      "mean_bleu": 0.3818834342798974,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 5,
+      "child_count": 10,
+      "copied_count": 2,
+      "duplicate_count": 2,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.4925447118469104,
+      "mean_bleu": 0.4729889964190807,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 6,
+      "child_count": 10,
+      "copied_count": 1,
+      "duplicate_count": 2,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.462376661011461,
+      "mean_bleu": 0.45993722083459926,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 7,
+      "child_count": 10,
+      "copied_count": 1,
+      "duplicate_count": 2,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.5675437656340323,
+      "mean_bleu": 0.5165890510346474,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 8,
+      "child_count": 10,
+      "copied_count": 0,
+      "duplicate_count": 1,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.42261637412267417,
+      "mean_bleu": 0.3993016976612892,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 9,
+      "child_count": 10,
+      "copied_count": 0,
+      "duplicate_count": 0,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.2421117478322546,
+      "mean_bleu": 0.2506941152333545,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    },
+    {
+      "generation": 10,
+      "child_count": 10,
+      "copied_count": 1,
+      "duplicate_count": 1,
+      "invalid_generation_slots": 0,
+      "mean_cosine": 0.40129295461297926,
+      "mean_bleu": 0.4042821063618759,
+      "valid_child_counts": {
+        "cosine": 10,
+        "bleu": 10
+      },
+      "missing_child_counts": {
+        "cosine": 0,
+        "bleu": 0
+      }
+    }
+  ]
+}

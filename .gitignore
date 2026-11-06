@@ -1,5 +1,19 @@
 # data
-/data
+# data source for depsign
+/data/external/detecting-signs-of-depression-from-social-media-postings/dev.tsv
+/data/external/detecting-signs-of-depression-from-social-media-postings/README.md
+/data/external/detecting-signs-of-depression-from-social-media-postings/test.tsv
+/data/external/detecting-signs-of-depression-from-social-media-postings/train.tsv
+#data source for dreaddit
+/data/external/dreaddit/dreaddit-test.csv
+/data/external/dreaddit/dreaddit-train.csv
+
+# processed data for depsign
+/data/processed/depsign/
+
+# processed data for dreaddit
+/data/processed/dreaddit/
+
 /Results
 
 # logs

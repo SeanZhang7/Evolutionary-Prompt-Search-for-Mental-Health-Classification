@@ -1,0 +1,380 @@
+{
+  "status": "complete",
+  "error": null,
+  "stage": "complete",
+  "purpose": "ga_development_pilot_not_held_out_test",
+  "seed": 11,
+  "dataset": "dreaddit",
+  "label_meanings": {
+    "0": "not stress",
+    "1": "stress"
+  },
+  "sampling_seed": 1729,
+  "sampling_manifest": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/dreaddit/dre_dev_100.manifest.json",
+    "sha256": "c422ed68c927607db46ddc2b8bdf6f64b5f35e026266f465dddb978def6522d7"
+  },
+  "label_mode": "binary",
+  "labels": [
+    "0",
+    "1"
+  ],
+  "label_mapping": {
+    "0": "0",
+    "1": "1"
+  },
+  "best": {
+    "id": "g019_child_003",
+    "source_id": null,
+    "generation": 19,
+    "macro_f1": 0.9097744360902256,
+    "n": 100,
+    "invalid_output_rate": 0.0,
+    "request_error_count": 0
+  },
+  "best_scope": "completed_error_free_candidates_in_this_run",
+  "prompt_content": "instruction block inserted into the fixed task template",
+  "data": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/dreaddit/dre_dev_100.tsv",
+    "sha256": "be8dd9e6b28656360ab24fa3d7247da9e4fd376da548223b6427f966c9da48e7"
+  },
+  "task_template": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/dreaddit/dreaddit_task_v1.txt",
+    "sha256": "71ace0be164b1c085854143856e58f42aed6a43af4708ee1554fd5f913f89ea6"
+  },
+  "context_tokens": 8192,
+  "operator_prompt": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/dreaddit/crossover_and_mutation_prompt.json",
+    "sha256": "ae75f3e56a35d821e86372fd47638b564eb75036d94155ddaa575b853fed5066",
+    "name": "baseline"
+  },
+  "operator_feedback": "none",
+  "critique": null,
+  "feedback_preparation": null,
+  "generation_parameters": {
+    "temperature": 0.8,
+    "top_p": 0.8,
+    "top_k": 20,
+    "max_tokens": 512,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "classification_parameters": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "max_tokens": 16,
+    "seed": 0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "candidate_evaluations": 145,
+  "population_size": 10,
+  "children_per_request": 1,
+  "generation_groups_per_generation": 10,
+  "offspring_per_generation": 10,
+  "generation_proposal_slots": 200,
+  "invalid_generation_groups": 0,
+  "generation_requests": 139,
+  "last_generation_issue": null,
+  "requested_generations": 20,
+  "completed_generations": 20,
+  "stopped_early": false,
+  "stop_reason": "generation_limit",
+  "early_stopping_patience": 5,
+  "early_stopping_enabled": true,
+  "parent_selection": "random",
+  "tournament_size": null,
+  "tournament_tie_break": null,
+  "unchanged_mean_generations": 1,
+  "crossover_probability": 0.3,
+  "mutation_probability": 0.5,
+  "deduplication": "exact_text",
+  "input_prompt_count": 10,
+  "initial_duplicates_removed": 0,
+  "duplicate_offspring_skipped": 65,
+  "invalid_offspring_skipped": 0,
+  "skipped_generation_slots": [],
+  "exhausted_slot_action": "skip_invalid_child_and_continue",
+  "max_crossover_tokens": 256,
+  "max_instruction_tokens": 256,
+  "deduplication_stage": "before_classification",
+  "deduplication_scope": "all_prior_candidates_in_this_run",
+  "copied_offspring": 61,
+  "candidate_evaluation_budget": 210,
+  "budget_interpretation": "upper_bound_before_duplicate_skips",
+  "planned_classification_requests": 21000,
+  "completed_classification_requests": 14500,
+  "evaluation_inputs": {
+    "sample_count": 100,
+    "source_sha256": "be8dd9e6b28656360ab24fa3d7247da9e4fd376da548223b6427f966c9da48e7",
+    "context_tokens": 8192,
+    "dataset": "dreaddit",
+    "label_meanings": {
+      "0": "not stress",
+      "1": "stress"
+    },
+    "label_mode": "binary",
+    "label_mapping": {
+      "0": "0",
+      "1": "1"
+    },
+    "labels": [
+      "0",
+      "1"
+    ],
+    "task_template_path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/dreaddit/dreaddit_task_v1.txt",
+    "class_counts": {
+      "0": 47,
+      "1": 53
+    },
+    "evaluation_scope": "provided_file_all_rows",
+    "task_template_sha256": "71ace0be164b1c085854143856e58f42aed6a43af4708ee1554fd5f913f89ea6",
+    "tokenizer_files_sha256": {
+      "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "config.json": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+    }
+  },
+  "generation_metrics": [
+    {
+      "generation": 0,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8060753124653759,
+      "best_macro_f1": 0.8346424142207525
+    },
+    {
+      "generation": 1,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8312615234814087,
+      "best_macro_f1": 0.8894583458948849,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 2,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8420320916525605,
+      "best_macro_f1": 0.8894583458948849,
+      "duplicate_offspring_skipped": 5,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 5,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 3,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8670210610409053,
+      "best_macro_f1": 0.8897243107769424,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 4,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8796683914011151,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 5,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8867190826907556,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 6,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8877348698503447,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 7,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8907356410946496,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 8,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8908329628876354,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 9,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8908329628876354,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 10,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8918445061689155,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 11,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8918445061689155,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 6,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 4,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 12,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8918886349854898,
+      "best_macro_f1": 0.8998397435897436,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 13,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8939060855841559,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 14,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8948999688611565,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 6,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 4,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 15,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8949087776691718,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 7,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 3,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 16,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8949087776691718,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 17,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8949087776691718,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 2
+    },
+    {
+      "generation": 18,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8969205923039436,
+      "best_macro_f1": 0.8999599839935974,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 19,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8988991360229772,
+      "best_macro_f1": 0.9097744360902256,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 20,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.8988991360229772,
+      "best_macro_f1": 0.9097744360902256,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 1
+    }
+  ],
+  "plot_metric": "best_macro_f1",
+  "best_fitness_definition": "Maximum individual macro-F1 in the retained population of each completed generation. G0 is initialization.",
+  "mean_f1_definition": "Arithmetic mean of individual macro-F1 in the retained population after configured deduplication and selection. G0 is initialization."
+}

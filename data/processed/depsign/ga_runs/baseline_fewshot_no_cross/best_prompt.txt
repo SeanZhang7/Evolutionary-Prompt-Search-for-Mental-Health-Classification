@@ -1,0 +1,1 @@
+Distinguish chronic depressive patterns from transient sadness, isolated grievances, or inquiries regarding others. Assign the not_depression label if the text centers on momentary emotions, brief unrelated topics, requests for aid concerning a friend's difficulties, or questions about medication, even if negative language is present.

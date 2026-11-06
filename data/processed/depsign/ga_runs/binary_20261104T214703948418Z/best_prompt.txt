@@ -1,0 +1,1 @@
+Review the text for evidence matching the provided label definitions. Evaluate which criteria are met by specific textual details. Choose the single label that best aligns with the content. Output only the selected label name.

@@ -1,0 +1,400 @@
+{
+  "status": "complete",
+  "error": null,
+  "stage": "complete",
+  "purpose": "ga_development_pilot_not_held_out_test",
+  "seed": 11,
+  "label_mode": "three_class",
+  "labels": [
+    "not_depression",
+    "moderate",
+    "severe"
+  ],
+  "label_mapping": {
+    "not depression": "not_depression",
+    "moderate": "moderate",
+    "severe": "severe"
+  },
+  "best": {
+    "id": "g019_child_002",
+    "source_id": null,
+    "generation": 19,
+    "macro_f1": 0.4194672894033235,
+    "n": 100,
+    "invalid_output_rate": 0.0,
+    "request_error_count": 0
+  },
+  "best_scope": "completed_error_free_candidates_in_this_run",
+  "prompt_content": "instruction block inserted into the fixed task template",
+  "data": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/data/processed/depsign/dev_100.tsv",
+    "sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70"
+  },
+  "task_template": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/depsign_task_v1.txt",
+    "sha256": "18955063f15181a5a6f5298cf2939e1360969822c203b8473c60b0b8f636d320"
+  },
+  "operator_prompt": {
+    "path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/crossover_and_mutation_prompt.json",
+    "sha256": "cabe56c419de0178d0e229858693efffee4d7e86292a0599d6c093d2de69bc3f",
+    "name": "v2"
+  },
+  "operator_feedback": "parent_metrics",
+  "feedback_preparation": "Unscored placeholders only; complete feedback requests checked before each generation call.",
+  "generation_parameters": {
+    "temperature": 0.8,
+    "top_p": 0.8,
+    "top_k": 20,
+    "max_tokens": 512,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "classification_parameters": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "max_tokens": 16,
+    "seed": 0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "candidate_evaluations": 162,
+  "generation_requests": 210,
+  "last_generation_issue": {
+    "generation": 20,
+    "slot": 9,
+    "proposal_attempt": 2,
+    "transport_retry": 0,
+    "operations": {
+      "crossover": true,
+      "mutation": true
+    },
+    "outcome": "invalid",
+    "rejection_reason": "Expecting ',' delimiter: line 1 column 1436 (char 1435)",
+    "request_error": null,
+    "finish_reason": "stop",
+    "reasoning": null,
+    "raw_output": "{\"crossover\":\"Distinguish depression-related evidence from temporary negative emotions, situational distress, and discussions about others. Apply 'not_depression' for brief, irrelevant, momentary feelings, medication questions, or help-seeking for friends, even with negative language. Select 'moderate' for fluctuating feelings, partial disengagement, or hope. Choose 'severe' only if multiple disorders are expressed or a suicide attempt history is explained. Evaluate the post holistically, prioritizing explicit criteria over emotional tone to avoid misclassifying temporary distress as severe depression. Ensure decisions reflect the full post context rather than isolated phrases to prevent overclassification.\",\"instruction\":\"Distinguish depression-related evidence from temporary negative emotions, situational distress, and discussions about others. Apply 'not_depression' for brief, irrelevant, momentary feelings, medication questions, or help-seeking for friends, even with negative language. Select 'moderate' for fluctuating feelings, partial disengagement, or hope. Choose 'severe' only if multiple disorders are expressed or a suicide attempt history is explained. Evaluate the post holistically, prioritizing explicit criteria over emotional tone to avoid misclassifying temporary distress as severe depression. Ensure decisions reflect the full post context rather than isolated phrases to prevent misclassification.\"",
+    "usage": {
+      "prompt_tokens": 1061,
+      "total_tokens": 1316,
+      "completion_tokens": 255,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    }
+  },
+  "requested_generations": 20,
+  "completed_generations": 20,
+  "stopped_early": false,
+  "stop_reason": "generation_limit",
+  "early_stopping_patience": 5,
+  "parent_selection": "tour",
+  "tournament_size": 2,
+  "tournament_tie_break": "first_drawn",
+  "unchanged_mean_generations": 0,
+  "crossover_probability": 0.8,
+  "mutation_probability": 0.8,
+  "deduplication": "exact_text",
+  "input_prompt_count": 10,
+  "initial_duplicates_removed": 0,
+  "duplicate_offspring_skipped": 47,
+  "invalid_offspring_skipped": 1,
+  "skipped_generation_slots": [
+    {
+      "generation": 20,
+      "slot": 2,
+      "id": "g020_child_002",
+      "parent_ids": [
+        "g017_child_006",
+        "g006_child_005"
+      ],
+      "operations": {
+        "crossover": true,
+        "mutation": true
+      },
+      "proposal_attempts": 3,
+      "reason": "Child slot 2 exhausted 3 proposals; last rejection: Expected exactly these fields for selected operations: crossover, instruction"
+    }
+  ],
+  "exhausted_slot_action": "skip_invalid_child_and_continue",
+  "max_crossover_tokens": 256,
+  "max_instruction_tokens": 256,
+  "deduplication_stage": "before_classification",
+  "deduplication_scope": "all_prior_candidates_in_this_run",
+  "copied_offspring": 7,
+  "candidate_evaluation_budget": 210,
+  "budget_interpretation": "upper_bound_before_duplicate_skips",
+  "planned_classification_requests": 21000,
+  "completed_classification_requests": 16200,
+  "evaluation_inputs": {
+    "sample_count": 100,
+    "source_sha256": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70",
+    "label_mode": "three_class",
+    "label_mapping": {
+      "not depression": "not_depression",
+      "moderate": "moderate",
+      "severe": "severe"
+    },
+    "labels": [
+      "not_depression",
+      "moderate",
+      "severe"
+    ],
+    "task_template_path": "/nfs/u50/zhanh279/Evolutionary-Prompt-Search-for-Mental-Health-Classification/prompts/depsign_task_v1.txt",
+    "class_counts": {
+      "not_depression": 41,
+      "moderate": 51,
+      "severe": 8
+    },
+    "evaluation_scope": "provided_file_all_rows",
+    "task_template_sha256": "18955063f15181a5a6f5298cf2939e1360969822c203b8473c60b0b8f636d320",
+    "tokenizer_files_sha256": {
+      "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "config.json": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+    }
+  },
+  "generation_metrics": [
+    {
+      "generation": 0,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3054281915465658,
+      "best_macro_f1": 0.34424871873196894
+    },
+    {
+      "generation": 1,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3290072420890831,
+      "best_macro_f1": 0.35000000000000003,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 2,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.35240026400496494,
+      "best_macro_f1": 0.3966723116813533,
+      "duplicate_offspring_skipped": 0,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 10,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 3,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3600820511275387,
+      "best_macro_f1": 0.3966723116813533,
+      "duplicate_offspring_skipped": 0,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 10,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 4,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.36874531682995604,
+      "best_macro_f1": 0.3966723116813533,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 5,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.37022819946037966,
+      "best_macro_f1": 0.3966723116813533,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 6,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.38146641937446274,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 7,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3860857074560588,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 8,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3893776296884163,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 9,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3952115140494552,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 10,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39604472203027696,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 11,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39629656498525245,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 12,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39629656498525245,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 1,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 9,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 13,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.3965211331689262,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 14,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39757314084183604,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 15,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39757314084183604,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 1
+    },
+    {
+      "generation": 16,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.39917742653520893,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 4,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 17,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.40203750760392226,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 7,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 18,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.4040524815267629,
+      "best_macro_f1": 0.41871262027817796,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 19,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.40666645172257176,
+      "best_macro_f1": 0.4194672894033235,
+      "duplicate_offspring_skipped": 2,
+      "invalid_offspring_skipped": 0,
+      "offspring_evaluated": 8,
+      "unchanged_mean_generations": 0
+    },
+    {
+      "generation": 20,
+      "population_size": 10,
+      "unique_prompt_count": 10,
+      "mean_macro_f1": 0.40915574920547265,
+      "best_macro_f1": 0.4194672894033235,
+      "duplicate_offspring_skipped": 3,
+      "invalid_offspring_skipped": 1,
+      "offspring_evaluated": 6,
+      "unchanged_mean_generations": 0
+    }
+  ],
+  "plot_metric": "best_macro_f1",
+  "best_fitness_definition": "Maximum individual macro-F1 in the retained population of each completed generation. G0 is initialization.",
+  "mean_f1_definition": "Arithmetic mean of individual macro-F1 in the retained population after configured deduplication and selection. G0 is initialization."
+}

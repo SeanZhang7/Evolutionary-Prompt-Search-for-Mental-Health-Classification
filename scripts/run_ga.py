@@ -42,8 +42,8 @@ RULES = {
     "zero_fitness_selection": "uniform",
     "operator_order": ["crossover", "mutation"],
     "operator_requests_per_proposal": 1,
-    "survivor_selection": "mu_plus_lambda_top_mu",
-    "tie_break": "creation_order_parents_then_children",
+    "survivor_selection": "mu_plus_lambda_tournament",
+    "tie_break": "first_drawn",
     "candidate_evaluation_budget": "(generations_after_initialization + 1) * population_size",
     "reuse_evaluation_cache": False,
     "max_proposal_attempts_per_slot": 3, "max_transport_retries_per_request": 1,
@@ -66,6 +66,12 @@ def load_settings(config):
     parameters, attempts, retries = qwen_client.load_settings(config)
     search = config["search"]
     normalize_parent_selection(search.get("parent_selection"))
+    survivor_ties = {"mu_plus_lambda_top_mu": "creation_order_parents_then_children",
+                     "mu_plus_lambda_tournament": "first_drawn"}
+    if search.get("survivor_selection") not in survivor_ties:
+        raise ValueError("Unsupported survivor_selection")
+    if search.get("tie_break") != survivor_ties[search["survivor_selection"]]:
+        raise ValueError("tie_break does not match survivor_selection")
     patience = search.get("early_stopping_patience")
     if type(patience) is not int or patience < 1:
         raise ValueError("early_stopping_patience must be a positive integer")
@@ -76,6 +82,8 @@ def load_settings(config):
         if type(probability) not in (int, float) or not math.isfinite(probability) or not 0 <= probability <= 1:
             raise ValueError(f"{key} must be a number between 0 and 1")
     for key, expected in RULES.items():
+        if key in ("survivor_selection", "tie_break"):
+            continue
         if search.get(key) != expected:
             raise ValueError(f"Unsupported GA setting: {key}")
     expected = {**evaluator.PARAMETERS, "temperature": parameters["temperature"], "top_p": 0.8,
@@ -177,7 +185,13 @@ def unique_instructions(population):
     return unique
 
 
-def select_survivors(population, count, deduplication="none"):
+def survivor_seed(seed, generation):
+    key = json.dumps([seed, "ga", generation, "survivor_selection"], separators=(",", ":")).encode()
+    return int(evaluator.digest(key)[:8], 16) % (2 ** 31)
+
+
+def select_survivors(population, count, deduplication="none", *,
+                     mode="mu_plus_lambda_tournament", seed=11):
     ranked = sorted(population, key=lambda p: (-p["macro_f1"], p["creation_order"]))
     if deduplication == "exact_text":
         ranked = unique_instructions(ranked)
@@ -185,7 +199,23 @@ def select_survivors(population, count, deduplication="none"):
             raise ValueError("Fewer unique survivor instructions than population size")
     elif deduplication != "none":
         raise ValueError("deduplication must be none or exact_text")
-    return ranked[:count]
+    if type(count) is not int or not 1 <= count <= len(ranked):
+        raise ValueError("Survivor count must be positive and not exceed the available population")
+    if mode == "mu_plus_lambda_top_mu":
+        return ranked[:count]
+    if mode != "mu_plus_lambda_tournament":
+        raise ValueError("Unsupported survivor_selection")
+    if len({p["id"] for p in ranked}) != len(ranked):
+        raise ValueError("Survivor candidates must have distinct individual IDs")
+    rng = random.Random(seed)
+    remaining = sorted(ranked, key=lambda p: p["creation_order"])
+    selected = []
+    while len(selected) < count:
+        contestants = rng.sample(range(len(remaining)), min(2, len(remaining)))
+        # Random draw order resolves ties, without preferring parents or older individuals.
+        winner = max(contestants, key=lambda i: remaining[i]["macro_f1"])
+        selected.append(remaining.pop(winner))
+    return selected
 
 
 def load_operator_prompts(data, name=None):
@@ -471,6 +501,12 @@ def _run_search(output, *, prompts_file=None, data_file=None,
         summary["requested_generations"] = generations
         summary["rules"]["generations_after_initialization"] = generations
         parameters, attempts, retries = load_settings(config)
+        summary["rules"].update(survivor_selection=config["search"]["survivor_selection"],
+                                tie_break=config["search"]["tie_break"])
+        if config["search"]["survivor_selection"] == "mu_plus_lambda_tournament":
+            summary["rules"].update(survivor_tournament_size=2, survivor_elite_count=0,
+                                    survivor_seed_policy="sha256_search_seed_generation_survivor_selection")
+        print(f"Survivor selection: {config['search']['survivor_selection']}", flush=True)
         if feedback_mode == "parent_critique":
             if dataset != "depsign":
                 raise ValueError("Parent critique is currently configured only for DepSign")
@@ -769,8 +805,12 @@ def _run_search(output, *, prompts_file=None, data_file=None,
                     evaluate(item)
                 check_sources()
                 combined = parents + children
-                parents = select_survivors(combined, n, deduplication)
+                next_seed = survivor_seed(seed, generation)
+                parents = select_survivors(combined, n, deduplication,
+                                          mode=config["search"]["survivor_selection"], seed=next_seed)
                 metrics = generation_metrics(generation, parents)
+                if config["search"]["survivor_selection"] == "mu_plus_lambda_tournament":
+                    metrics["survivor_selection_seed"] = next_seed
                 metrics["duplicate_offspring_skipped"] = skipped_this_generation
                 metrics["invalid_offspring_skipped"] = invalid_this_generation
                 metrics["offspring_evaluated"] = len(children)

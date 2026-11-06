@@ -1,4 +1,4 @@
-"""Small GA report: best instruction, performance metadata, generation best-fitness plot."""
+"""Small GA report: best instruction, metadata, and generation best/mean fitness plot."""
 
 import json
 
@@ -64,6 +64,11 @@ class CompactReport:
             "early_stopping_patience": summary["rules"].get("early_stopping_patience"),
             "early_stopping_enabled": summary.get("early_stopping_enabled", True),
             "parent_selection": summary["rules"].get("parent_selection"),
+            "survivor_selection": summary["rules"].get("survivor_selection"),
+            "survivor_tie_break": summary["rules"].get("tie_break"),
+            "survivor_tournament_size": summary["rules"].get("survivor_tournament_size"),
+            "survivor_elite_count": summary["rules"].get("survivor_elite_count"),
+            "survivor_seed_policy": summary["rules"].get("survivor_seed_policy"),
             "tournament_size": summary["rules"].get("tournament_size"),
             "tournament_tie_break": summary["rules"].get("tournament_tie_break"),
             "unchanged_mean_generations": summary.get("unchanged_mean_generations", 0),
@@ -87,7 +92,8 @@ class CompactReport:
             "completed_classification_requests": summary.get("logged_classification_requests", 0),
             "evaluation_inputs": summary.get("evaluation_inputs"),
             "generation_metrics": history,
-            "plot_metric": "best_macro_f1",
+            "plot_metric": "best_and_mean_macro_f1",
+            "plot_metrics": ["best_macro_f1", "mean_macro_f1"],
             "best_fitness_definition": "Maximum individual macro-F1 in the retained population of each completed generation. G0 is initialization.",
             "mean_f1_definition": "Arithmetic mean of individual macro-F1 in the retained population after configured deduplication and selection. G0 is initialization.",
         }
@@ -101,20 +107,26 @@ class CompactReport:
         temporary.replace(self.output / name)
 
     def plot(self, history):
-        figure = self.Figure(figsize=(6.4, 4.0), constrained_layout=True)
+        figure = self.Figure(figsize=(8, 4.8), constrained_layout=True)
         self.Canvas(figure)
         axis = figure.subplots()
         generations = [row["generation"] for row in history]
         best_scores = [row["best_macro_f1"] for row in history]
-        axis.plot(generations, best_scores, marker="o", linewidth=2)
-        label_step = max(1, (len(generations) + 9) // 10)
+        mean_scores = [row["mean_macro_f1"] for row in history]
+        axis.plot(generations, best_scores, marker="o", linewidth=2, color="tab:blue", label="Best")
+        axis.plot(generations, mean_scores, marker="s", linestyle="--", linewidth=2,
+                  color="tab:orange", label="Mean")
+        label_step = max(1, (len(generations) + 5) // 6)
         labeled = sorted(set(range(0, len(generations), label_step)) | {len(generations) - 1})
         for index in labeled:
             generation, best = generations[index], best_scores[index]
             axis.annotate(f"{best:.4f}", (generation, best), xytext=(0, 9),
-                          textcoords="offset points", ha="center")
-        axis.set(xlabel="Generation (G0 = initial population)", ylabel="Best fitness (macro-F1)",
-                 title="Best fitness in each generation", ylim=(-0.05, 1.08))
+                          textcoords="offset points", ha="center", fontsize=8, color="tab:blue")
+            axis.annotate(f"{mean_scores[index]:.4f}", (generation, mean_scores[index]), xytext=(0, -15),
+                          textcoords="offset points", ha="center", fontsize=8, color="tab:orange")
+        axis.set(xlabel="Generation (G0 = initial population)", ylabel="Fitness (macro-F1)",
+                 title="Best and mean fitness of retained population", ylim=(-0.08, 1.08))
+        axis.legend(loc="best")
         ticks = [generations[index] for index in labeled]
         axis.set_xticks(ticks, [f"G{value}" for value in ticks])
         if len(generations) == 1:
