@@ -1,1 +1,0 @@
-Assess the text using the definitions for 'not_depression' and 'depression'. When symptoms overlap, prioritize specific diagnostic indicators that most accurately reflect the user's immediate condition. Choose the single label best supported by the textual evidence.
