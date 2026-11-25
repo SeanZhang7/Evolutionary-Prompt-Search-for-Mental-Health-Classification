@@ -1,0 +1,10 @@
+{
+  "description": "Initial task wording copied from the existing classification template. Required output is fixed, not evolvable.",
+  "label_mode": "three_class",
+  "text": "Classify texts' labels.",
+  "required_output": "Output exactly one of: not_depression, moderate, severe.",
+  "source": {
+    "path": "prompts/depsign/depsign_task_v2.txt",
+    "sha256": "80a36daa07123e7d448e2a985d2b02dd220c64ab2f77a7712451956b80419f3a"
+  }
+}

@@ -42,6 +42,23 @@
       }
     }
   },
+  "joint_search": {
+    "generations_after_initialization": 20,
+    "prompts_file": "prompts/joint/humanPrompt.json",
+    "generation_template_file": "prompts/joint/ga_crossover_mutation.txt",
+    "operator_prompt_file": "prompts/joint/crossover_and_mutation_prompt.json",
+    "operator_prompt_name": "baseline",
+    "tasks": {
+      "depsign": {
+        "data_file": "data/processed/depsign/dev_100.tsv",
+        "task_template_file": "prompts/depsign/depsign_task_Bi.txt"
+      },
+      "dreaddit": {
+        "data_file": "data/processed/dreaddit/dre_dev_100.tsv",
+        "task_template_file": "prompts/dreaddit/dreaddit_task_v1.txt"
+      }
+    }
+  },
   "evaluation": {
     "fitness": "macro_f1"
   },
@@ -70,5 +87,38 @@
     "max_instruction_tokens": 256,
     "max_crossover_tokens": 256,
     "searchable_component": "instruction_block_only"
+  },
+  "component_search": {
+    "generations_after_initialization": 20,
+    "data_file": "data/processed/depsign/dev_100.tsv",
+    "modes": {
+      "binary": {
+        "task_definition_file": "prompts/depsign/components/binary/task_definition.json",
+        "label_definition_file": "prompts/depsign/components/binary/label_definition.json",
+        "instruction_file": "prompts/depsign/components/binary/instruction.json"
+      },
+      "three_class": {
+        "task_definition_file": "prompts/depsign/components/three_class/task_definition.json",
+        "label_definition_file": "prompts/depsign/components/three_class/label_definition.json",
+        "instruction_file": "prompts/depsign/components/three_class/instruction.json"
+      }
+    },
+    "components": {
+      "task_definition": {
+        "operator_prompt_file": "prompts/depsign/components/operators/task_definition.json",
+        "max_tokens": 256,
+        "generation_max_tokens": 768
+      },
+      "label_definition": {
+        "operator_prompt_file": "prompts/depsign/components/operators/label_definition_creative.json",
+        "max_tokens": 512,
+        "generation_max_tokens": 1536
+      },
+      "instruction": {
+        "operator_prompt_file": "prompts/depsign/components/operators/instruction.json",
+        "max_tokens": 256,
+        "generation_max_tokens": 768
+      }
+    }
   }
 }

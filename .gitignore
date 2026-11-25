@@ -11,6 +11,7 @@
 # processed data for depsign
 /data/processed/depsign/dev_v1
 /data/processed/depsign/ga_runs
+/data/processed/depsign/component_ga_runs
 /data/processed/depsign/dev_100.manifest.json
 /data/processed/depsign/dev_100.tsv
 /data/processed/depsign/dev_clean.tsv
@@ -19,6 +20,9 @@
 /data/processed/dreaddit/ga_runs
 /data/processed/dreaddit/dre_dev_100.manifest.json
 /data/processed/dreaddit/dre_dev_100.tsv
+
+# joint development search results
+/data/processed/joint/ga_runs
 
 /Results
 

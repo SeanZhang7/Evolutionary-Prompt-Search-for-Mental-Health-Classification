@@ -1,0 +1,32 @@
+# DepSign fitness experiment
+
+This protocol was written before the new search and confirmation classifications. Historical project scores informed the design. The live comparison optimizes the instruction slot of the three-class few-shot prompt. A separate analysis replays selection in complete three-component runs with candidate-level records. These two experiments answer different questions.
+
+## Live comparison
+
+Use the local Qwen3.5-9B service, greedy classification, the same few-shot template and all 100 records in the project's fixed DepSign development search set. Compare seeds 11, 29 and 47 with five initial instructions and four generations of five trial slots per arm. All arms within a seed start from the same five prompts, selected without using their performance. Freeze a generation before generating its children. Allow one proposal per slot. Count invalid proposals and duplicates and report actual unique evaluations and model calls separately from scheduled slots. Reuse exact evaluations under identical settings. Keep the production scripts' results separate.
+
+1. **GA tournament.** Recombine and mutate two roulette-selected parents. Use the project's two-way tournament over parents and children to refill the population.
+2. **GA elite.** Use the same proposal operator, initial population and sampling seeds. Take the highest-scoring five from parents and children; ties favor older candidates. After the first selection the two GA arms may generate different descendants.
+3. **Textual differential evolution (DE).** For each target, identify differences between two other distinct prompts, mutate their differences, combine them with the best current prompt, and cross with the target. Replace each target only on a strict gain.
+4. **Independent proposals.** Ask Qwen for a fresh instruction without parents or fitness. Keep the best five. This estimates what the same proposal budget can achieve without parental information.
+
+GA elite and DE adapt Guo et al., *Connecting Large Language Models with Evolutionary Algorithms Yields Powerful Prompt Optimizers*, ICLR 2024, Figures 1–2 and Algorithms 2–3. Our classifier, exact-text handling, decoding configuration, English JSON output and equal slot budget are project choices. The GA proposal always attempts both operations; it is a matched comparison here and differs from the production operator probabilities. [Paper](https://proceedings.iclr.cc/paper_files/paper/2024/file/9156b0f6dfa9bbd18c79cc459ef5d61c-Paper-Conference.pdf) · [Authors' implementation](https://github.com/beeevita/EvoPrompt/blob/main/evoluter.py).
+
+## Outcomes
+
+Compare the best retained macro-F1, retained mean macro-F1, history-wide best, actual strict record discoveries and unique candidates on dev_100. On a fixed selection set, both elitist replacement schemes guarantee a nondecreasing best and mean (ties and plateaus allowed). Discovery of a better candidate still requires a strictly higher measured score. Tournament selection permits regression.
+
+For transfer to other posts within DepSign, freeze each arm's highest **search** macro-F1 candidate and the matched initial winner, with oldest-first ties. Classify these on the same 300 proportionally sampled, disjoint cleaned-development records (split seed 20261125; the confirmation draw uses seed + 1). Compare paired macro-F1 differences to initialization and to the tournament arm, including uncertainty from resampling the same posts within class. Compare all predeclared seeds and arms. Never use confirmation to select an individual, tune a prompt, select a generation or re-run a losing seed. This development confirmation is disjoint for this search; historical use of the full development split precludes a final unseen-test claim. Repeated search seeds reuse the same posts and do not supply three independent datasets.
+
+## Full three-component experiment
+
+Run the production three-component experiment with the creative label operator on three-class DepSign, 10 prompts, wheel parents, seed 11 and four generations. Change only the survivor policy (and its required tie rule) to parent-plus-child top N. Compare with the first four generations of the already recorded tournament run three_class_20261125T012800064686Z, checking input hashes and baseline metrics. This is a historical comparator; record whether G0 and the common operator draws actually reproduce before attributing a difference to selection. Freeze the best candidate observed through G4 in each arm plus the G0 winner and score those complete combinations on the same 300 confirmation items used in the instruction experiment. This is a one-seed secondary comparison.
+
+## Prospective supplement: search mistakes as feedback
+
+Added after inspecting archived per-class F1 and early tournament search scores, before inspecting any confirmation outcomes. This supplement leaves the four primary arms unchanged. It targets the quality of the proposed children. In the most recent archived three-class component run, the best search score rose from 0.3943 to 0.4253, while severe F1 fell from 0.2400 to 0.1905. A higher aggregate score can hide a weaker class.
+
+Follow Pryzant et al.'s idea of obtaining a textual critique from annotated mistakes, then editing the prompt using that critique. Each previously retained instruction gets one trial slot per generation. Sample up to three of that parent's **search-set** mistakes (at most one per raw gold class), including the gold and predicted labels and a bounded excerpt. Give these to the local Qwen critic, then ask it in a separate request to edit the parent instruction. Candidate classification uses the original three-class few-shot template and the final instruction. Keep the best five complete candidates from parents plus offspring. This implements error feedback and beam selection; the paper also used paraphrase expansion and bandit-based selection. [Pryzant et al., EMNLP 2023](https://aclanthology.org/2023.emnlp-main.494/)
+
+Use exactly the same five initial instructions, dev_100 search cases, seeds, four generations, one proposal per slot and frozen 300-post confirmation split as the primary experiment. Compare each seed's search winner with G0 and the matched GA elite winner on the confirmation posts. Count the extra critique calls separately. The comparison estimates the effect of the entire feedback-assisted procedure, including its extra information and cost. This is the only additional prospective arm for this study.

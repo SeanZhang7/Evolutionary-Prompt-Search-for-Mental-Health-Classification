@@ -1,0 +1,340 @@
+{
+  "status": "complete",
+  "seed": 11,
+  "mode": "three_class",
+  "primary_protocol_hash": "09ee16460e4aa1fb2244d6facf935229fd9a3110eb283e57b49b7d72db5b2f75",
+  "through_generation": 4,
+  "search": {
+    "tournament": [
+      {
+        "generation": 0,
+        "best_retained": 0.3942857142857143,
+        "mean_retained": 0.3592420784968265,
+        "best_ever": 0.3942857142857143
+      },
+      {
+        "generation": 1,
+        "best_retained": 0.39551820728291315,
+        "mean_retained": 0.3684884339955251,
+        "best_ever": 0.39551820728291315
+      },
+      {
+        "generation": 2,
+        "best_retained": 0.39551820728291315,
+        "mean_retained": 0.37089097361257656,
+        "best_ever": 0.4094120740083473
+      },
+      {
+        "generation": 3,
+        "best_retained": 0.42112299465240643,
+        "mean_retained": 0.37819196959390156,
+        "best_ever": 0.42112299465240643
+      },
+      {
+        "generation": 4,
+        "best_retained": 0.42112299465240643,
+        "mean_retained": 0.3835300187812295,
+        "best_ever": 0.42112299465240643
+      }
+    ],
+    "elite": [
+      {
+        "generation": 0,
+        "best_retained": 0.3942857142857143,
+        "mean_retained": 0.3592420784968265,
+        "best_ever": 0.3942857142857143
+      },
+      {
+        "generation": 1,
+        "best_retained": 0.39551820728291315,
+        "mean_retained": 0.3744864567204054,
+        "best_ever": 0.39551820728291315
+      },
+      {
+        "generation": 2,
+        "best_retained": 0.39551820728291315,
+        "mean_retained": 0.3820348282566014,
+        "best_ever": 0.39551820728291315
+      },
+      {
+        "generation": 3,
+        "best_retained": 0.4092746592746592,
+        "mean_retained": 0.3870354990023389,
+        "best_ever": 0.4092746592746592
+      },
+      {
+        "generation": 4,
+        "best_retained": 0.427760925738681,
+        "mean_retained": 0.3971091534727288,
+        "best_ever": 0.427760925738681
+      }
+    ]
+  },
+  "source_non_config_hashes": {
+    "binary_task_definition": "9577d10c94b98a135d1cd696b5c6e7aea903f7b2de6b5fb11b373e424b8f276f",
+    "binary_label_definition": "bebe2ce092cfd6a6ad593582ae18b60a0a8f0b72a3d88122b684960ee2db05c5",
+    "binary_instruction": "190774a0ae5ee33bf0fceecc224d223f8d0b611a0693136c0aabc9b9ee1b3242",
+    "three_class_task_definition": "bae9b7d8c82c71130c92bd980352e84b55f0d650f463ff56263ee98778ba595c",
+    "three_class_label_definition": "c64d1a615ae49f29aa3d5ccb89d3a857cb7b34ede15193899ed1300facbc0731",
+    "three_class_instruction": "e5d1dcaa20a75dc74666615d730eb0dd635c18379d3ad725e5ab4d0395012534",
+    "selected_instruction_source": "e5d1dcaa20a75dc74666615d730eb0dd635c18379d3ad725e5ab4d0395012534",
+    "operator_task_definition": "244ebb06c6cd75b1ce5cea74f7ea5b3f65fd06178ec0eb6f713c524995371c6c",
+    "operator_label_definition": "add770517c90f11f64758cdc9fb5227c6256c525265db9e3a2a5a62c46b1ce14",
+    "operator_instruction": "59366ad06fb4281d701004cb8617f1a665b0c7a7568635a6c610f6da12755b9c",
+    "evaluation_data": "5baee5137b32c2c8cae9381644b8cd4faadae8976cc11be579fa0de881ebac70",
+    "sampling_manifest": "fd4e0242efaaa94af9f6075620c99aa1c52ff96563dd9455e131c27cad7b0af2"
+  },
+  "source_report_sha256": {
+    "tournament": "ac1d348f0a7eebf53a5becb737af84005d1e1eb5913310f272d7955a294f850c",
+    "elite": "4a309ce32a63950ad90f966c0ec68df2f0a88bb14b6e081899ee155ab0b4a246"
+  },
+  "search_cost": {
+    "tournament": {
+      "generations": 4,
+      "evaluated_combinations": 48,
+      "classification_requests": 4800,
+      "generation_requests": 102,
+      "reported_generation_tokens": 135224
+    },
+    "elite": {
+      "generations": 4,
+      "evaluated_combinations": 48,
+      "classification_requests": 4800,
+      "generation_requests": 101,
+      "reported_generation_tokens": 128485
+    }
+  },
+  "generation_agreement": [
+    {
+      "generation": 0,
+      "tournament_proposed_valid": 10,
+      "elite_proposed_valid": 10,
+      "same_slot_and_complete_prompt": 10,
+      "identical_scored_prompts": 10,
+      "identical_aggregate_metrics_on_same_scored_prompts": 10,
+      "all_generated_prompts_and_statuses_match": true,
+      "all_scores_on_matching_prompts_agree": true,
+      "parent_pairs_and_seeded_draws_match": true,
+      "retained_order_matches": true,
+      "retained_members_match": true
+    },
+    {
+      "generation": 1,
+      "tournament_proposed_valid": 10,
+      "elite_proposed_valid": 10,
+      "same_slot_and_complete_prompt": 10,
+      "identical_scored_prompts": 10,
+      "identical_aggregate_metrics_on_same_scored_prompts": 10,
+      "all_generated_prompts_and_statuses_match": true,
+      "all_scores_on_matching_prompts_agree": true,
+      "parent_pairs_and_seeded_draws_match": true,
+      "retained_order_matches": false,
+      "retained_members_match": false
+    },
+    {
+      "generation": 2,
+      "tournament_proposed_valid": 10,
+      "elite_proposed_valid": 10,
+      "same_slot_and_complete_prompt": 0,
+      "identical_scored_prompts": 0,
+      "identical_aggregate_metrics_on_same_scored_prompts": 0,
+      "all_generated_prompts_and_statuses_match": false,
+      "all_scores_on_matching_prompts_agree": true,
+      "parent_pairs_and_seeded_draws_match": false,
+      "retained_order_matches": false,
+      "retained_members_match": false
+    },
+    {
+      "generation": 3,
+      "tournament_proposed_valid": 9,
+      "elite_proposed_valid": 10,
+      "same_slot_and_complete_prompt": 0,
+      "identical_scored_prompts": 0,
+      "identical_aggregate_metrics_on_same_scored_prompts": 0,
+      "all_generated_prompts_and_statuses_match": false,
+      "all_scores_on_matching_prompts_agree": true,
+      "parent_pairs_and_seeded_draws_match": false,
+      "retained_order_matches": false,
+      "retained_members_match": false
+    },
+    {
+      "generation": 4,
+      "tournament_proposed_valid": 10,
+      "elite_proposed_valid": 10,
+      "same_slot_and_complete_prompt": 0,
+      "identical_scored_prompts": 0,
+      "identical_aggregate_metrics_on_same_scored_prompts": 0,
+      "all_generated_prompts_and_statuses_match": false,
+      "all_scores_on_matching_prompts_agree": true,
+      "parent_pairs_and_seeded_draws_match": false,
+      "retained_order_matches": false,
+      "retained_members_match": false
+    }
+  ],
+  "first_divergent_generation": 1,
+  "service_signatures_match": true,
+  "scope": "Historical single-seed comparison through a common generation. Archives contain aggregate scores and confusion matrices, not individually paired search predictions.",
+  "confirmation_scope": "Development confirmation, disjoint from all dev_100 and the few-shot/known smoke posts by PID and stripped text. Earlier full-dev use means it is not a previously unseen benchmark test.",
+  "confirmation": [
+    {
+      "selection": "tournament_G0",
+      "winner_generation": 0,
+      "search_f1": 0.3942857142857143,
+      "confirmation_f1": 0.3479125930499811,
+      "n": 300,
+      "per_class": {
+        "not_depression": {
+          "precision": 0.6173913043478261,
+          "recall": 0.5819672131147541,
+          "f1": 0.5991561181434599,
+          "support": 122
+        },
+        "moderate": {
+          "precision": 0.5882352941176471,
+          "recall": 0.19480519480519481,
+          "f1": 0.2926829268292683,
+          "support": 154
+        },
+        "severe": {
+          "precision": 0.08955223880597014,
+          "recall": 0.5,
+          "f1": 0.1518987341772152,
+          "support": 24
+        }
+      },
+      "invalid_count": 0,
+      "template_sha256": "a039b61a1edb5c61651f76e9a38d23c4043328201c31b5a29b21bb63a86e89e9"
+    },
+    {
+      "selection": "tournament",
+      "winner_generation": 3,
+      "search_f1": 0.42112299465240643,
+      "confirmation_f1": 0.39688951593969485,
+      "n": 300,
+      "per_class": {
+        "not_depression": {
+          "precision": 0.6756756756756757,
+          "recall": 0.4098360655737705,
+          "f1": 0.5102040816326531,
+          "support": 122
+        },
+        "moderate": {
+          "precision": 0.6203703703703703,
+          "recall": 0.43506493506493504,
+          "f1": 0.5114503816793893,
+          "support": 154
+        },
+        "severe": {
+          "precision": 0.1016949152542373,
+          "recall": 0.5,
+          "f1": 0.16901408450704225,
+          "support": 24
+        }
+      },
+      "invalid_count": 0,
+      "template_sha256": "9ed6db875801e6b41ff5641eaa832e33fa487ce248da474bd8f24beb85701945"
+    },
+    {
+      "selection": "elite_G0",
+      "winner_generation": 0,
+      "search_f1": 0.3942857142857143,
+      "confirmation_f1": 0.3479125930499811,
+      "n": 300,
+      "per_class": {
+        "not_depression": {
+          "precision": 0.6173913043478261,
+          "recall": 0.5819672131147541,
+          "f1": 0.5991561181434599,
+          "support": 122
+        },
+        "moderate": {
+          "precision": 0.5882352941176471,
+          "recall": 0.19480519480519481,
+          "f1": 0.2926829268292683,
+          "support": 154
+        },
+        "severe": {
+          "precision": 0.08955223880597014,
+          "recall": 0.5,
+          "f1": 0.1518987341772152,
+          "support": 24
+        }
+      },
+      "invalid_count": 0,
+      "template_sha256": "a039b61a1edb5c61651f76e9a38d23c4043328201c31b5a29b21bb63a86e89e9"
+    },
+    {
+      "selection": "elite",
+      "winner_generation": 4,
+      "search_f1": 0.427760925738681,
+      "confirmation_f1": 0.3906567340940719,
+      "n": 300,
+      "per_class": {
+        "not_depression": {
+          "precision": 0.6428571428571429,
+          "recall": 0.4426229508196721,
+          "f1": 0.5242718446601942,
+          "support": 122
+        },
+        "moderate": {
+          "precision": 0.6018518518518519,
+          "recall": 0.42207792207792205,
+          "f1": 0.4961832061068702,
+          "support": 154
+        },
+        "severe": {
+          "precision": 0.09259259259259259,
+          "recall": 0.4166666666666667,
+          "f1": 0.15151515151515152,
+          "support": 24
+        }
+      },
+      "invalid_count": 0,
+      "template_sha256": "62509c1c9fac0b1261134efd432dc1aab512452404efd29a75f738f82a3270eb"
+    }
+  ],
+  "contrasts": [
+    {
+      "arm": "elite",
+      "baseline": "elite_G0",
+      "delta": 0.0427441410440908,
+      "paired_95pct_interval": [
+        -0.0013906065654051775,
+        0.08410471697849088
+      ]
+    },
+    {
+      "arm": "tournament",
+      "baseline": "tournament_G0",
+      "delta": 0.048976922889713725,
+      "paired_95pct_interval": [
+        0.009230097115390655,
+        0.08896821192112175
+      ]
+    },
+    {
+      "arm": "elite",
+      "baseline": "tournament",
+      "delta": -0.006232781845622926,
+      "paired_95pct_interval": [
+        -0.04039179487632524,
+        0.024106426670763518
+      ]
+    }
+  ],
+  "bootstrap": {
+    "replicates": 2000,
+    "seed": 914,
+    "interval": "Paired percentile bootstrap at post level, conditional on gold class counts and this search seed."
+  },
+  "confirmation_cost": {
+    "unique_prompts": 3,
+    "failed_attempts": 0,
+    "reported_tokens": {
+      "prompt_tokens": 1493388,
+      "completion_tokens": 2973,
+      "total_tokens": 1496361
+    },
+    "classification_requests": 900
+  }
+}

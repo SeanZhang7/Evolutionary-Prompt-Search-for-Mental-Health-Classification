@@ -292,7 +292,10 @@ def parent_feedback(parents, operations, *, allow_unscored=False):
 def build_request(task, template, parents, parameters, tokenizer, operations=None, operator_prompts=None,
                   *, allow_unscored=False):
     operations = operations if operations is not None else {"crossover": True, "mutation": True}
-    background = evaluator.task_background(task)
+    # Joint search deliberately supplies no task background to the generator.
+    background = evaluator.task_background(task) if task is not None else None
+    if task is None and "{{TASK_SPEC_JSON}}" in template:
+        raise ValueError("A generation template without task context cannot request TASK_SPEC_JSON")
     if operator_prompts is None:
         operator_prompts = load_operator_prompts(DEFAULT_OPERATOR_PROMPT.read_bytes())
     contract = operator_contract(operations, operator_prompts)
@@ -385,7 +388,7 @@ def parse_offspring(content, tokenizer, operations, children_per_request):
 
 
 def generate_child(request, tokenizer, *, seed, slot, attempts, retries, record, generation=1, operations=None,
-                   children_per_request=1):
+                   children_per_request=1, parse_response=None):
     operations = operations if operations is not None else {"crossover": True, "mutation": True}
     for attempt in range(1, attempts + 1):
         payload = {**request, "seed": request_seed(seed, slot, attempt, generation)}
@@ -410,7 +413,8 @@ def generate_child(request, tokenizer, *, seed, slot, attempts, retries, record,
                     raise ValueError(f"Expected finish_reason=stop; got {event['finish_reason']!r}")
                 if event["reasoning"] and not request["chat_template_kwargs"]["enable_thinking"]:
                     raise ValueError("Nonempty reasoning despite thinking disabled")
-                child = parse_offspring(event["raw_output"], tokenizer, operations, children_per_request)
+                child = (parse_response(event["raw_output"]) if parse_response is not None else
+                         parse_offspring(event["raw_output"], tokenizer, operations, children_per_request))
                 event.update(outcome="accepted", **child)
             except ValueError as exc:
                 event.update(outcome="invalid", rejection_reason=str(exc))
@@ -891,10 +895,12 @@ def run_ga(output, *, prompts_file=None, data_file=None,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--task", choices=evaluator.DATASETS, default="depsign",
+    parser.add_argument("--task", choices=(*evaluator.DATASETS, "joint"), default="depsign",
                         help="Task and default prompt/data paths (default: depsign)")
     parser.add_argument("--label-mode", choices=evaluator.LABEL_MODES,
                         help="Default: three_class for DepSign; binary for Dreaddit")
+    parser.add_argument("--search-space", choices=("instruction", "components"), default="instruction",
+                        help="Evolve instructions only (default) or all three DepSign prompt components")
     parser.add_argument("--task-template-file", type=Path,
                         help="Override the fixed classification task template (must match the label mode)")
     parser.add_argument("--prompts-file", type=Path,
@@ -914,6 +920,43 @@ def main(argv=None):
     parser.add_argument("--prepare-only", action="store_true", help="Validate inputs and requests without HTTP calls")
     parser.add_argument("--save-details", action="store_true", help="Also keep snapshots, raw responses and all individual evaluations")
     args = parser.parse_args(argv)
+    if args.search_space == "components":
+        if args.task != "depsign":
+            parser.error("--search-space components supports only --task depsign")
+        for name in ("prompts_file", "task_template_file", "operator_prompt_file", "operator_prompt_name", "save_details"):
+            if getattr(args, name):
+                parser.error(f"--{name.replace('_', '-')} is not supported for components; use component_search in the config")
+        if __package__:
+            from .component_ga import run_components
+        else:
+            from component_ga import run_components
+        mode = args.label_mode or "three_class"
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        output = args.output_dir or ROOT / "data/processed/depsign/component_ga_runs" / f"{mode}_{stamp}"
+        result = run_components(output, config_file=CONFIG, label_mode=mode, data_file=args.data_file,
+                                seed=args.seed, generations=args.generations, parent_selection=args.parent_selection,
+                                prepare_only=args.prepare_only)
+        if result["status"] not in {"complete", "prepared"}:
+            raise SystemExit(1)
+        return
+    if args.task == "joint":
+        if args.label_mode not in (None, "binary"):
+            parser.error("Joint search supports only --label-mode binary")
+        for name in ("parent_selection", "data_file", "task_template_file", "operator_prompt_file",
+                     "operator_prompt_name", "save_details"):
+            if getattr(args, name):
+                parser.error(f"--{name.replace('_', '-')} is not supported for joint search; use joint_search in the config")
+        if __package__:
+            from .joint_ga import run_joint
+        else:
+            from joint_ga import run_joint
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        output = args.output_dir or ROOT / "data/processed/joint/ga_runs" / stamp
+        result = run_joint(output, config_file=CONFIG, prompts_file=args.prompts_file,
+                           seed=args.seed, generations=args.generations, prepare_only=args.prepare_only)
+        if result["status"] not in {"complete", "prepared"}:
+            raise SystemExit(1)
+        return
     try:
         args.label_mode = evaluator.task_spec(args.label_mode, dataset=args.task)["label_mode"]
     except ValueError as exc:

@@ -183,6 +183,57 @@ For N initial prompts after deduplication, M posts, G evolution steps, and K chi
 
 Crossover and final instructions each have a 256-token ceiling. `model.generation.max_tokens` limits the whole generated response, including reasoning and final JSON, with context checks before inference. After three invalid generation outputs, discard the proposal group without replacement and continue (one child slot normally, two for v4). Parents keep the population at N even if all children fail. Reports record skipped slots and per-generation counts; `complete` means the generation limit or early-stopping criterion was reached, not that every proposed child was valid. Transient request errors allow one retry, then stop; other service errors and classification request failures also stop the search. Structural validation does not establish semantic correctness or improved performance.
 
+## DepSign three-component search
+
+This separate experiment evolves **task definition, label definitions, and instruction** as one individual with one whole-prompt macro-F1. Binary and three-class runs use separate initial JSON files under `prompts/depsign/components/<label_mode>/`, copied from the current binary and three-class V2 templates and their instruction populations. Few-shot texts, labels, IDs, order and the output contract are fixed. The current label operator redesigns classification rules from development-set feedback; evolved rules are not necessarily faithful dataset definitions or validated clinical criteria.
+
+The label editor now uses `prompts/depsign/components/operators/label_definition_creative.json`. Both crossover and mutation may add, remove, broaden, narrow or restructure criteria using parent confusion matrices. Row proportions and sample counts guide hypotheses, not causal conclusions about individual rules or unseen posts. The optional operator setting `preserve_definition_criteria` defaults to `true`; the creative version sets it to `false`, removing the inherited original-criteria constraint only for label editing. Format validation still enforces exact label keys, nonempty definitions, token limits and immutable examples; it does not establish semantic quality or consistency with those examples. Task/instruction editing keeps its existing constraints. To restore the baseline, point `component_search.components.label_definition.operator_prompt_file` back to `prompts/depsign/components/operators/label_definition.json`. Reports retain the operator content and effective setting. Changes apply to new runs only; sampling parameters, probabilities and selection are unchanged.
+
+```bash
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
+  --task depsign --search-space components --label-mode binary \
+  --generations 20 --prepare-only
+```
+
+Use `--label-mode three_class` for three classes; remove `--prepare-only` to search. Both modes are validated on preparation; no model calls are made. The server must support the same context limit. Default search space remains `instruction`; components are not supported for joint or Dreaddit runs.
+
+Configure initial JSON paths, the three editable operator JSON files and component budgets under `component_search`. `--seed`, `--generations`, `--parent-selection`, `--data-file`, and `--output-dir` are supported; single instruction/template/operator overrides and detailed-output mode are rejected. Defaults: 20 generations, seed 11, no early stopping, and the existing single-task parent/survivor selection settings.
+
+Each child uses one selected parent pair. The three components independently draw crossover/mutation switches using the same configured probabilities. Each active component gets a separate request containing **only its target component and the complete parent's confusion matrix**, not the other components, scalar F1 or an extra critique. Label editors also see their read-only examples but return definitions only. All edits refer to the original parents. The matrix cannot attribute errors to a particular component; proposed corrections are hypotheses.
+
+Only complete combinations are evaluated. Exact whole-combination duplicates skip classification; equal instructions with different definitions remain distinct. A component exhausting its invalid proposals skips the whole child; service errors stop the run. Each generation has N child slots and retains N combinations. Task/instruction edits are limited to 256 tokens each with 768 output tokens per request; label definition strings total at most 512 tokens with 1536 output tokens. Few-shot text counts toward context but not the editable-text limit. Definitions/examples are never automatically truncated; post truncation follows the existing evaluator.
+
+Results are written once under `data/processed/depsign/component_ga_runs/<label_mode>_<timestamp>/`: `performance.json`, three `best_*.json` component exports, `best_template.txt`, `best_fitness.png`, and `prompt_similarity.json/.png`. The best candidate is the highest-F1 complete combination (creation-order ties). `best_template.txt` is a **full classification template with a post placeholder**, not a drop-in instruction file for the old single-prompt evaluator. Similarity is computed separately per editable component against its actual parent slots; label similarity excludes fixed examples. Only completed generations enter curves. Fixed few-shot content is saved once in the report; no evaluated posts, raw classification responses or per-generation temporary files are saved.
+
+With N=10, 20 generations and all unique valid children, this costs 21,000 classification requests and up to 600 component-generation requests before retries. Report the added generation cost when comparing with instruction-only search. A higher combined score does not establish which component caused the improvement.
+
+## Joint binary search (DepSign + Dreaddit)
+
+Joint search evolves one shared instruction population with two maximized objectives: DepSign binary macro-F1 and Dreaddit macro-F1. Each instruction is evaluated on both fixed 100-item search sets using each task's own template, labels and existing few-shot examples. This is joint development optimization, not unseen-task transfer or held-out evaluation.
+
+```bash
+PROMPT_SEARCH_CONTEXT_TOKENS=8192 python -B scripts/run_ga.py \
+  --task joint --label-mode binary --generations 20 --prepare-only
+```
+
+Remove `--prepare-only` to search; the server must support the same context limit. Joint mode defaults to binary, 20 generations, seed 11, and no early stopping. `--seed`, `--generations`, `--prompts-file`, and `--output-dir` are supported. Configure both datasets/templates and joint operator paths under `joint_search` in `configs/experiment_v1.json`; single-task data/template/parent-selection overrides and `--save-details` are rejected in joint mode.
+
+Initial instructions in `prompts/joint/humanPrompt.json` are copied from the assistant-written general instructions in `humanPrompt_Bi.json`. Joint generation has its own template and operator JSON. It receives **only participating parent instructions and operation/output requirements**: no injected task names, definitions, performance, critiques or example posts. Parent text itself is passed unchanged. Each generation has N single-child slots; copies and exact duplicates skip both evaluations, and exhausted invalid proposals skip their slot. Model parameters, operator probabilities and retry limits come from the existing configuration.
+
+NSGA-II selects parents by rank/crowding tournaments and survivors by nondominated fronts, using crowding distance to split the last front. Each objective's crowding contribution is normalized within its front; constant objectives contribute zero. Parent ties are seeded random; survivor ties use creation order. Different instructions with identical scores remain distinct. Both task evaluations must finish without request errors before a candidate enters selection. The population stays at N (10 with the supplied prompts).
+
+Results are saved once at exit under `data/processed/joint/ga_runs/<timestamp>/`:
+
+- `performance.json`: per-task metrics, candidates, generations, configuration, source hashes, seeds and inference costs.
+- `best_prompt.txt`: highest mean of the two F1 values across all fully evaluated candidates; ties favor the higher minimum F1, then creation order. This mean is **only for reporting**, never for evolutionary selection.
+- `pareto_front.json` / `.png`: the observed nondominated set across all fully evaluated candidates, including completed candidates from an unfinished generation.
+- `best_fitness.png`: separate task panels showing retained-population best and mean for completed generations. Task maxima may belong to different instructions.
+- `prompt_similarity.json` / `.png`: existing parent-child lexical similarity analysis, excluding incomplete generations.
+
+Preparation produces metadata only; no best prompt or plots are invented before evaluation. Failures preserve measured results; plot/similarity failures are reported separately. No posts or raw classification responses are saved by default. With 10 initial prompts, 20 generations and 10 unique valid children per generation, the upper bound is 42,000 classification requests, plus generation requests/retries. Actual costs are recorded by task and role.
+
+Selection follows [NSGA-II rank and crowding](https://pymoo.org/algorithms/moo/nsga2.html); it does not combine both fitness values into a scalar search objective.
+
 ## V4: two children per generation request
 
 Select `--operator-prompt-name v4` to produce two children per parent-pair group in one Qwen request. V4 uses parent instructions and task definitions, with `feedback: "none"`; no parent F1, confusion matrices or critiques are supplied. Child A improves clarity and precision while preserving the main guidance; child B explores a different evidence organization, decision sequence, or instruction structure. This is prompt-based encouragement, not a verified semantic-distance constraint. Exact duplicate children still skip classification under the configured deduplication rule.

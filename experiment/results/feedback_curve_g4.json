@@ -1,0 +1,210 @@
+{
+  "arm": "feedback",
+  "method_name": "Error-feedback prompt search",
+  "protocol_hash": "b63e8fc766889ad41021fde47d21faa6a62c4b1f9fe1cef8d3bc08dd718406cd",
+  "label_mode": "three_class",
+  "search_size": 100,
+  "population": 5,
+  "generations": 4,
+  "measured": "Macro-F1 best and arithmetic mean from IDs actually retained in each generation.",
+  "slope_definition": "Endpoint change divided by elapsed generations. A null window lacks its final generation.",
+  "strict_comparison_epsilon": 1e-12,
+  "plateau_definition": "G9 through G12 span at most 0.005 macro-F1 for both retained best and retained mean; at least one unique evaluated child in each of G10, G11, G12. Descriptive search-sample criterion.",
+  "per_seed": [
+    {
+      "seed": 11,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.4008365157301328,
+          "mean": 0.372396187020135,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.4008365157301328,
+          "mean": 0.3755934630223646,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.4210189181910162,
+          "mean": 0.39419642241213504,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.4210189181910162,
+          "mean": 0.4062447366981525,
+          "unique_evaluated_children": 5
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 2,
+          "regressions": 0,
+          "ties": 2
+        },
+        "mean": {
+          "strict_gains": 4,
+          "regressions": 0,
+          "ties": 0
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.046507188785669784,
+            "gain_per_generation": 0.011626797196417446
+          },
+          "mean": {
+            "gain": 0.04668665391522592,
+            "gain_per_generation": 0.01167166347880648
+          }
+        },
+        "G4-G8": null,
+        "G8-G12": null
+      },
+      "late_plateau": {
+        "status": "insufficient_horizon",
+        "observed": null
+      }
+    },
+    {
+      "seed": 29,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.40191197691197694,
+          "mean": 0.37199868809643455,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.4105164458262393,
+          "mean": 0.38231741255748586,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.427376176496206,
+          "mean": 0.40739594949625746,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.427376176496206,
+          "mean": 0.40765830307367945,
+          "unique_evaluated_children": 5
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 3,
+          "regressions": 0,
+          "ties": 1
+        },
+        "mean": {
+          "strict_gains": 4,
+          "regressions": 0,
+          "ties": 0
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.05286444709085958,
+            "gain_per_generation": 0.013216111772714895
+          },
+          "mean": {
+            "gain": 0.04810022029075289,
+            "gain_per_generation": 0.012025055072688223
+          }
+        },
+        "G4-G8": null,
+        "G8-G12": null
+      },
+      "late_plateau": {
+        "status": "insufficient_horizon",
+        "observed": null
+      }
+    },
+    {
+      "seed": 47,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.43138884072211625,
+          "mean": 0.38306203947884654,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.43138884072211625,
+          "mean": 0.38648901433439287,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.43138884072211625,
+          "mean": 0.3981874586776645,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.43138884072211625,
+          "mean": 0.39971642678557995,
+          "unique_evaluated_children": 5
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 1,
+          "regressions": 0,
+          "ties": 3
+        },
+        "mean": {
+          "strict_gains": 4,
+          "regressions": 0,
+          "ties": 0
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.05687711131676981,
+            "gain_per_generation": 0.014219277829192453
+          },
+          "mean": {
+            "gain": 0.04015834400265339,
+            "gain_per_generation": 0.010039586000663347
+          }
+        },
+        "G4-G8": null,
+        "G8-G12": null
+      },
+      "late_plateau": {
+        "status": "insufficient_horizon",
+        "observed": null
+      }
+    }
+  ]
+}

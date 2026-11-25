@@ -1,0 +1,423 @@
+{
+  "arm": "feedback",
+  "method_name": "Error-feedback prompt search",
+  "protocol_hash": "39d816fe27fd427e25b0a2b12d71f7b96d253ba0368bda572e746d9bb34c5c40",
+  "label_mode": "three_class",
+  "search_size": 100,
+  "population": 5,
+  "generations": 12,
+  "measured": "Macro-F1 best and arithmetic mean from IDs actually retained in each generation.",
+  "slope_definition": "Endpoint change divided by elapsed generations. A null window lacks its final generation.",
+  "strict_comparison_epsilon": 1e-12,
+  "plateau_definition": "G9 through G12 span at most 0.005 macro-F1 for both retained best and retained mean; at least one unique evaluated child in each of G10, G11, G12. Descriptive search-sample criterion.",
+  "per_seed": [
+    {
+      "seed": 11,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.4008365157301328,
+          "mean": 0.372396187020135,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.4008365157301328,
+          "mean": 0.3755934630223646,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.4210189181910162,
+          "mean": 0.39419642241213504,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.4210189181910162,
+          "mean": 0.4062447366981525,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 5,
+          "best": 0.4210189181910162,
+          "mean": 0.407471596018131,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 6,
+          "best": 0.4210189181910162,
+          "mean": 0.4080842144505169,
+          "unique_evaluated_children": 4
+        },
+        {
+          "generation": 7,
+          "best": 0.4254923021840315,
+          "mean": 0.4160475184193292,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 8,
+          "best": 0.4254923021840315,
+          "mean": 0.4160475184193292,
+          "unique_evaluated_children": 4
+        },
+        {
+          "generation": 9,
+          "best": 0.4254923021840315,
+          "mean": 0.4160475184193292,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 10,
+          "best": 0.4254923021840315,
+          "mean": 0.4160475184193292,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 11,
+          "best": 0.4254923021840315,
+          "mean": 0.41662574846386946,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 12,
+          "best": 0.4254923021840315,
+          "mean": 0.41662574846386946,
+          "unique_evaluated_children": 4
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 3,
+          "regressions": 0,
+          "ties": 9
+        },
+        "mean": {
+          "strict_gains": 8,
+          "regressions": 0,
+          "ties": 4
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.046507188785669784,
+            "gain_per_generation": 0.011626797196417446
+          },
+          "mean": {
+            "gain": 0.04668665391522592,
+            "gain_per_generation": 0.01167166347880648
+          }
+        },
+        "G4-G8": {
+          "best": {
+            "gain": 0.0044733839930152786,
+            "gain_per_generation": 0.0011183459982538196
+          },
+          "mean": {
+            "gain": 0.009802781721176712,
+            "gain_per_generation": 0.002450695430294178
+          }
+        },
+        "G8-G12": {
+          "best": {
+            "gain": 0.0,
+            "gain_per_generation": 0.0
+          },
+          "mean": {
+            "gain": 0.0005782300445402733,
+            "gain_per_generation": 0.00014455751113506832
+          }
+        }
+      },
+      "late_plateau": {
+        "status": "assessed",
+        "observed": true,
+        "ranges_G9_G12": {
+          "best": 0.0,
+          "mean": 0.0005782300445402733
+        },
+        "at_least_one_unique_child_each_G10_G11_G12": true
+      }
+    },
+    {
+      "seed": 29,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.40191197691197694,
+          "mean": 0.37199868809643455,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.4105164458262393,
+          "mean": 0.38231741255748586,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.427376176496206,
+          "mean": 0.40739594949625746,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.427376176496206,
+          "mean": 0.40765830307367945,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 5,
+          "best": 0.427376176496206,
+          "mean": 0.40765830307367945,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 6,
+          "best": 0.427376176496206,
+          "mean": 0.4083561926087783,
+          "unique_evaluated_children": 4
+        },
+        {
+          "generation": 7,
+          "best": 0.427376176496206,
+          "mean": 0.4083561926087783,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 8,
+          "best": 0.427376176496206,
+          "mean": 0.41255075170415784,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 9,
+          "best": 0.427376176496206,
+          "mean": 0.41652801718744736,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 10,
+          "best": 0.427376176496206,
+          "mean": 0.41748500167697883,
+          "unique_evaluated_children": 4
+        },
+        {
+          "generation": 11,
+          "best": 0.427376176496206,
+          "mean": 0.41748500167697883,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 12,
+          "best": 0.4433694324998673,
+          "mean": 0.42787287785252415,
+          "unique_evaluated_children": 5
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 4,
+          "regressions": 0,
+          "ties": 8
+        },
+        "mean": {
+          "strict_gains": 9,
+          "regressions": 0,
+          "ties": 3
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.05286444709085958,
+            "gain_per_generation": 0.013216111772714895
+          },
+          "mean": {
+            "gain": 0.04810022029075289,
+            "gain_per_generation": 0.012025055072688223
+          }
+        },
+        "G4-G8": {
+          "best": {
+            "gain": 0.0,
+            "gain_per_generation": 0.0
+          },
+          "mean": {
+            "gain": 0.004892448630478385,
+            "gain_per_generation": 0.0012231121576195964
+          }
+        },
+        "G8-G12": {
+          "best": {
+            "gain": 0.015993256003661305,
+            "gain_per_generation": 0.003998314000915326
+          },
+          "mean": {
+            "gain": 0.01532212614836631,
+            "gain_per_generation": 0.0038305315370915777
+          }
+        }
+      },
+      "late_plateau": {
+        "status": "assessed",
+        "observed": false,
+        "ranges_G9_G12": {
+          "best": 0.015993256003661305,
+          "mean": 0.011344860665076784
+        },
+        "at_least_one_unique_child_each_G10_G11_G12": true
+      }
+    },
+    {
+      "seed": 47,
+      "points": [
+        {
+          "generation": 0,
+          "best": 0.37451172940534644,
+          "mean": 0.35955808278292656,
+          "unique_evaluated_children": 0
+        },
+        {
+          "generation": 1,
+          "best": 0.43138884072211625,
+          "mean": 0.38306203947884654,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 2,
+          "best": 0.43138884072211625,
+          "mean": 0.38648901433439287,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 3,
+          "best": 0.43138884072211625,
+          "mean": 0.3981874586776645,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 4,
+          "best": 0.43138884072211625,
+          "mean": 0.39971642678557995,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 5,
+          "best": 0.43138884072211625,
+          "mean": 0.40073244780160094,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 6,
+          "best": 0.43138884072211625,
+          "mean": 0.40826676934521033,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 7,
+          "best": 0.43138884072211625,
+          "mean": 0.41628250089035373,
+          "unique_evaluated_children": 4
+        },
+        {
+          "generation": 8,
+          "best": 0.43138884072211625,
+          "mean": 0.41735018431097826,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 9,
+          "best": 0.43138884072211625,
+          "mean": 0.41735018431097826,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 10,
+          "best": 0.43138884072211625,
+          "mean": 0.4178134297782637,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 11,
+          "best": 0.43138884072211625,
+          "mean": 0.4178134297782637,
+          "unique_evaluated_children": 5
+        },
+        {
+          "generation": 12,
+          "best": 0.43138884072211625,
+          "mean": 0.4178134297782637,
+          "unique_evaluated_children": 5
+        }
+      ],
+      "changes": {
+        "best": {
+          "strict_gains": 1,
+          "regressions": 0,
+          "ties": 11
+        },
+        "mean": {
+          "strict_gains": 9,
+          "regressions": 0,
+          "ties": 3
+        }
+      },
+      "windows": {
+        "G0-G4": {
+          "best": {
+            "gain": 0.05687711131676981,
+            "gain_per_generation": 0.014219277829192453
+          },
+          "mean": {
+            "gain": 0.04015834400265339,
+            "gain_per_generation": 0.010039586000663347
+          }
+        },
+        "G4-G8": {
+          "best": {
+            "gain": 0.0,
+            "gain_per_generation": 0.0
+          },
+          "mean": {
+            "gain": 0.017633757525398308,
+            "gain_per_generation": 0.004408439381349577
+          }
+        },
+        "G8-G12": {
+          "best": {
+            "gain": 0.0,
+            "gain_per_generation": 0.0
+          },
+          "mean": {
+            "gain": 0.0004632454672854336,
+            "gain_per_generation": 0.0001158113668213584
+          }
+        }
+      },
+      "late_plateau": {
+        "status": "assessed",
+        "observed": true,
+        "ranges_G9_G12": {
+          "best": 0.0,
+          "mean": 0.0004632454672854336
+        },
+        "at_least_one_unique_child_each_G10_G11_G12": true
+      }
+    }
+  ]
+}

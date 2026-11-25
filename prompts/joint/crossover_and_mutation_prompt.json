@@ -1,0 +1,13 @@
+{
+  "prompts": [
+    {
+      "name": "baseline",
+      "description": "One task-general child per request, using only participating parent instructions and operator requirements. No task context or performance feedback is injected.",
+      "feedback": "none",
+      "children_per_request": 1,
+      "both": "First combine useful guidance from BOTH parents into a coherent crossover instruction; do not simply concatenate them. Then mutate the crossover by changing its decision steps, focus, or structure to explore a useful alternative. Return exactly {\"crossover\":\"combined instruction\",\"instruction\":\"mutated instruction\"}. Keep crossover within {{MAX_CROSSOVER_TOKENS}} tokens and instruction within {{MAX_INSTRUCTION_TOKENS}} tokens. Prefer concise fields so the complete JSON fits the output budget.",
+      "crossover_only": "Combine useful guidance from BOTH parents into one coherent instruction, resolving redundancy or conflicting guidance. Do not simply concatenate them or perform a separate mutation. Return exactly {\"crossover\":\"combined instruction\"}. Keep it within {{MAX_CROSSOVER_TOKENS}} tokens. This field will be used directly as the child instruction.",
+      "mutation_only": "Mutate the supplied parent instruction by changing its decision steps, focus, or structure to explore a useful alternative. Do not perform crossover. Return exactly {\"instruction\":\"mutated instruction\"}. Keep it within {{MAX_INSTRUCTION_TOKENS}} tokens."
+    }
+  ]
+}

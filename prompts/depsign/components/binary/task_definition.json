@@ -1,0 +1,10 @@
+{
+  "description": "Initial task wording copied from the existing classification template. Required output is fixed, not evolvable.",
+  "label_mode": "binary",
+  "text": "Classify texts' labels.",
+  "required_output": "Output exactly one of: not_depression, depression\nDo not include an explanation, quotation marks, or any other text.",
+  "source": {
+    "path": "prompts/depsign/depsign_task_Bi.txt",
+    "sha256": "51219749fc547d7985c72dd0df010e6c2172afe5f6e956351f44b3861bc3bea8"
+  }
+}
